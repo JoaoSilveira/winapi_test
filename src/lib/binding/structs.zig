@@ -1,4 +1,6 @@
-pub const WNDCLASSA = extern struct {
+usingnamespace @import("constants.zig");
+
+pub const WNDCLASSW = extern struct {
     style: c_uint,
     lpfnWndProc: fn (?*c_void, c_uint, usize, isize) callconv(.Stdcall) isize,
     cbClsExtra: c_int,
@@ -7,8 +9,23 @@ pub const WNDCLASSA = extern struct {
     hIcon: ?*c_void,
     hCursor: ?*c_void,
     hbrBackground: ?*c_void,
-    lpszMenuName: ?[*:0]const u8,
-    lpszClassName: ?[*:0]const u8,
+    lpszMenuName: ?[*:0]const u16,
+    lpszClassName: ?[*:0]const u16,
+};
+
+pub const WNDCLASSEXW = extern struct {
+    cbSize: c_uint = @sizeOf(WNDCLASSEXW),
+    style: c_uint,
+    lpfnWndProc: fn (?*c_void, c_uint, usize, isize) callconv(.Stdcall) isize,
+    cbClsExtra: c_int,
+    cbWndExtra: c_int,
+    hInstance: ?*c_void,
+    hIcon: ?*c_void,
+    hCursor: ?*c_void,
+    hbrBackground: ?*c_void,
+    lpszMenuName: ?[*:0]const u16,
+    lpszClassName: ?[*:0]const u16,
+    hIconSm: ?*c_void,
 };
 
 pub const MSG = extern struct {
@@ -54,7 +71,7 @@ pub const DLLVERSIONINFO = extern struct {
     dwPlatformID: c_uint,
 };
 
-pub const CREATESTRUCTA = extern struct {
+pub const CREATESTRUCTW = extern struct {
     lpCreateParams: ?*c_void,
     hInstance: ?*c_void,
     hMenu: ?*c_void,
@@ -64,8 +81,8 @@ pub const CREATESTRUCTA = extern struct {
     y: c_int,
     x: c_int,
     style: c_long,
-    lpszName: [*:0]const u8,
-    lpszClass: [*:0]const u8,
+    lpszName: [*:0]const u16,
+    lpszClass: [*:0]const u16,
     dwExStyle: c_uint,
 };
 
@@ -73,4 +90,40 @@ pub const NMHDR = extern struct {
     hwndFrom: ?*c_void,
     idFrom: usize,
     code: c_uint,
+};
+
+pub const NONCLIENTMETRICSW = extern struct {
+    cbSize: c_uint = @sizeOf(NONCLIENTMETRICSW),
+    iBorderWidth: c_int,
+    iScrollWidth: c_int,
+    iScrollHeight: c_int,
+    iCaptionWidth: c_int,
+    iCaptionHeight: c_int,
+    lfCaptionFont: LOGFONTW,
+    iSmCaptionWidth: c_int,
+    iSmCaptionHeight: c_int,
+    lfSmCaptionFont: LOGFONTW,
+    iMenuWidth: c_int,
+    iMenuHeight: c_int,
+    lfMenuFont: LOGFONTW,
+    lfStatusFont: LOGFONTW,
+    lfMessageFont: LOGFONTW,
+    iPaddedBorderWidth: c_int,
+};
+
+pub const LOGFONTW = extern struct {
+    lfHeight: c_long,
+    lfWidth: c_long,
+    lfEscapement: c_long,
+    lfOrientation: c_long,
+    lfWeight: c_long,
+    lfItalic: u8,
+    lfUnderline: u8,
+    lfStrikeOut: u8,
+    lfCharSet: u8,
+    lfOutPrecision: u8,
+    lfClipPrecision: u8,
+    lfQuality: u8,
+    lfPitchAndFamily: u8,
+    lfFaceName: [LF_FACESIZE]u16,
 };
