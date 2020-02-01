@@ -1,0 +1,26 @@
+usingnamespace @import("structs.zig");
+
+pub extern "user32" fn LoadIconA(hInstance: ?*c_void, lpIconName: ?[*:0]const u8) callconv(.Stdcall) ?*c_void;
+pub extern "user32" fn LoadCursorA(hInstance: ?*c_void, lpCursorName: ?[*:0]const u8) callconv(.Stdcall) ?*c_void;
+pub extern "gdi32" fn GetStockObject(i: c_int) callconv(.Stdcall) ?*c_void;
+pub extern "user32" fn RegisterClassA(lpWndClass: *const WNDCLASSA) callconv(.Stdcall) c_ushort;
+pub extern "user32" fn CreateWindowExA(dwExStyle: c_uint, lpClassName: ?[*:0]const u8, lpWindowName: ?[*:0]const u8, dwStyle: c_uint, X: c_int, Y: c_int, nWidth: c_int, nHeight: c_int, hWndParent: ?*c_void, hMenu: ?*c_void, hInstance: ?*c_void, lpParam: ?*c_void) callconv(.Stdcall) ?*c_void;
+pub extern "user32" fn ShowWindow(hWnd: *c_void, nCmdShow: c_int) callconv(.Stdcall) c_int;
+pub extern "user32" fn UpdateWindow(hWnd: *c_void) callconv(.Stdcall) c_int;
+pub extern "user32" fn GetMessageA(lpMsg: *MSG, hWnd: ?*c_void, wMsgFilterMin: c_uint, wMsgFilterMax: c_int) callconv(.Stdcall) c_int;
+pub extern "user32" fn TranslateMessage(lpMsg: *const MSG) callconv(.Stdcall) c_int;
+pub extern "user32" fn DispatchMessageA(lpMsg: *const MSG) callconv(.Stdcall) isize;
+pub extern "user32" fn DefWindowProcA(hWnd: ?*c_void, Msg: c_uint, wParam: usize, lParam: isize) callconv(.Stdcall) isize;
+pub extern "user32" fn MessageBoxA(hwnd: ?*c_void, text: [*:0]const u8, caption: [*:0]const u8, style: c_uint) callconv(.Stdcall) c_int;
+pub extern "kernel32" fn GetModuleHandleA(lpModuleName: ?[*:0]const u8) callconv(.Stdcall) ?*c_void;
+pub extern "user32" fn PostQuitMessage(nExitCode: c_int) callconv(.Stdcall) void;
+pub extern "user32" fn BeginPaint(hWnd: *c_void, lpPaint: *PAINTSTRUCT) callconv(.Stdcall) ?*c_void;
+pub extern "user32" fn EndPaint(hWnd: *c_void, lpPaint: *const PAINTSTRUCT) callconv(.Stdcall) c_int;
+pub extern "user32" fn FillRect(hDC: *c_void, lprc: *const RECT, hbr: *c_void) callconv(.Stdcall) c_int;
+pub extern "user32" fn DrawTextA(hDC: *c_void, lpchText: ?[*:0]const u8, cchText: c_int, lprc: *RECT, format: c_uint) callconv(.Stdcall) c_int;
+pub extern "comctl32" fn InitCommonControls() callconv(.Stdcall) void;
+pub extern "comctl32" fn InitCommonControlsEx(picce: *const INITCOMMONCONTROLSEX) callconv(.Stdcall) c_int;
+pub extern "kernel32" fn LoadLibraryA(lpLibFineName: [*:0]const u8) callconv(.Stdcall) ?*c_void;
+pub extern "kernel32" fn FreeLibrary(hLibModule: *c_void) callconv(.Stdcall) c_int;
+pub extern "kernel32" fn GetProcAddress(hModule: *c_void, lpProcName: [*:0]const u8) callconv(.Stdcall) ?(fn () callconv(.Stdcall) isize);
+pub extern "user32" fn PeekMessageA(lpMsg: *MSG, hWnd: ?*c_void, wMsgFilterMin: c_uint, wMsgFilterMax: c_int, wRemoveMsg: c_uint) c_int;
