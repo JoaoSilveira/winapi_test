@@ -1,14 +1,19 @@
-const Builder = @import("std").build.Builder;
+const std = @import("std");
+const Builder = std.build.Builder;
 const exe_name = "main";
 
 pub fn build(b: *Builder) void {
+    b.addNativeSystemLibPath("C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x64");
+
     const lib = b.addStaticLibrary("winapi", "src/lib/winapi.zig");
     lib.setOutputDir("bin");
+    lib.linkSystemLibrary("dwrite");
 
     const exe = b.addExecutable(exe_name, "src/main.zig");
     exe.setBuildMode(b.standardReleaseOptions());
     exe.setOutputDir("bin");
-    exe.linkLibrary(lib);
+    exe.linkSystemLibrary("dwrite");
+    exe.subsystem = std.Target.SubSystem.Windows;
 
     // could not make it work yet
     // const manifest = b.addWriteFile(exe_name++".exe.manifest", manifest_contents);

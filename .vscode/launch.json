@@ -14,7 +14,8 @@
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
-      "externalConsole": false
+      "externalConsole": false,
+      "preLaunchTask": "build"
     }
   ]
 }

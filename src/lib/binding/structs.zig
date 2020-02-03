@@ -127,3 +127,59 @@ pub const LOGFONTW = extern struct {
     lfPitchAndFamily: u8,
     lfFaceName: [LF_FACESIZE]u16,
 };
+
+pub const DWRITE_FACTORY_TYPE = extern enum {
+    DWRITE_FACTORY_TYPE_SHARED,
+    DWRITE_FACTORY_TYPE_ISOLATED
+};
+
+pub const GUID = extern struct {
+    Data1: c_ulong,
+    Data2: c_ushort,
+    Data3: c_ushort,
+    Data4: [8]u8,
+};
+
+pub fn Interface(comptime vtbl: type) type {
+    return extern struct {
+        lpVtbl: *vtbl,
+    };
+}
+
+pub const IUnknown = extern struct {
+    const Self = Interface(@This());
+    
+    QueryInterface: fn (this: *Self, riid: *const GUID, ppvObject: **c_void) callconv(.Stdcall) c_long,
+    AddRef: fn (this: *Self) callconv(.Stdcall) c_ulong,
+    Release: fn (this: *Self) callconv(.Stdcall) c_ulong,
+};
+
+pub const IID_IDWriteFactory = GUID_STRING("b859ee5a-d838-4b5b-a2e8-1adc7d93db48");
+
+fn DEFINE_GUID(comptime l: c_ulong, comptime w1: c_ushort, comptime w2: c_ushort, comptime b1: u8, comptime b2: u8, comptime b3: u8, comptime b4: u8, comptime b5: u8, comptime b6: u8, comptime b7: u8, comptime b8: u8) GUID {
+    return .{
+        .Data1 = l,
+        .Data2 = w1,
+        .Data3 = w2,
+        .Data4 = .{ b1, b2, b3, b4, b5, b6, b7, b8 },
+    };
+}
+
+fn GUID_STRING(comptime guid: *const [36:0]u8) GUID {
+    const parseInt = @import("std").fmt.parseInt;
+    return .{
+        .Data1 = parseInt(c_ulong, guid[0..8], 16) catch unreachable,
+        .Data2 = parseInt(c_ushort, guid[9..13], 16) catch unreachable,
+        .Data3 = parseInt(c_ushort, guid[14..18], 16) catch unreachable,
+        .Data4 = .{
+            parseInt(u8, guid[19..21], 16) catch unreachable,
+            parseInt(u8, guid[21..23], 16) catch unreachable,
+            parseInt(u8, guid[24..26], 16) catch unreachable,
+            parseInt(u8, guid[26..28], 16) catch unreachable,
+            parseInt(u8, guid[28..30], 16) catch unreachable,
+            parseInt(u8, guid[30..32], 16) catch unreachable,
+            parseInt(u8, guid[32..34], 16) catch unreachable,
+            parseInt(u8, guid[34..36], 16) catch unreachable,
+        },
+    };
+}

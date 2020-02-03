@@ -33,3 +33,5 @@ pub extern "kernel32" fn LoadLibraryW(lpLibFineName: [*:0]const u16) callconv(.S
 pub extern "gdi32" fn GetStockObject(i: c_int) callconv(.Stdcall) ?*c_void;
 pub extern "gdi32" fn CreateFontIndirectW(lplf: *LOGFONTW) callconv(.Stdcall) ?*c_void;
 pub extern "gdi32" fn DeleteObject(ho: ?*c_void) callconv(.Stdcall) c_int;
+
+pub extern "dwrite" fn DWriteCreateFactory(factoryType: DWRITE_FACTORY_TYPE, iid: *const GUID, factory: **Interface(IUnknown)) callconv(.C) c_long;
