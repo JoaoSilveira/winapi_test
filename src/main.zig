@@ -1,6 +1,7 @@
 const std = @import("std");
 usingnamespace @import("lib/winapi.zig");
 usingnamespace @import("lib/winapi.zig").binding;
+usingnamespace @import("lib/binding/dwrite.zig");
 const warn = std.debug.warn;
 
 var alloc: *std.mem.Allocator = undefined;
@@ -8,12 +9,12 @@ var alloc: *std.mem.Allocator = undefined;
 // leavind WinMain because wWinMain is not recognized as a main function
 pub export fn WinMain(hInstance: ?*c_void, hPrevInstance: ?*c_void, szCmdLine: ?[*:0]u8, iCmdShow: c_int) callconv(.Stdcall) c_int {
     @setAlignStack(16);
-    var testing: *Interface(IUnknown) = undefined;
+    var testing: *IUnknown = undefined;
 
     const result = DWriteCreateFactory(
         DWRITE_FACTORY_TYPE.DWRITE_FACTORY_TYPE_ISOLATED,
         &IID_IDWriteFactory,
-        &testing
+        @ptrCast(**c_void, &testing)
     );
 
     if (result < 0) return -1;

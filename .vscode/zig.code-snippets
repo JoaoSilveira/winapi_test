@@ -1,0 +1,30 @@
+{
+	"Add new COM interface (VTable)": {
+		"scope": "zig",
+		"prefix": "comobj",
+		"body": [
+			"pub const IID_$1 = GUID_STRING($2);",
+			"pub const $1 = Interface($1Vtbl);",
+			"pub const $1Vtbl = extern struct {",
+			"    const Self = $1;",
+			"",
+			"    // IUnknown",
+			"    QueryInterface: fn (this: *Self, riid: *const GUID, ppvObject: **c_void) callconv(.Stdcall) c_long,",
+			"    AddRef: fn (this: *Self) callconv(.Stdcall) c_ulong,",
+			"    Release: fn (this: *Self) callconv(.Stdcall) c_ulong,",
+			"",
+			"    // $1",
+			"    $0",
+			"};",
+		],
+		"description": "Adds a new definition of a COM object"
+	},
+	"Add new method to VTable": {
+		"scope": "zig",
+		"prefix": "comfn",
+		"body": [
+			"$1: fn (this: *Self${3:, }) callconv(.Stdcall) ${2:c_long},$0"
+		],
+		"description": "Adds a new function to the existing vtable"
+	}
+}

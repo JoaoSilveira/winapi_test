@@ -34,4 +34,32 @@ pub extern "gdi32" fn GetStockObject(i: c_int) callconv(.Stdcall) ?*c_void;
 pub extern "gdi32" fn CreateFontIndirectW(lplf: *LOGFONTW) callconv(.Stdcall) ?*c_void;
 pub extern "gdi32" fn DeleteObject(ho: ?*c_void) callconv(.Stdcall) c_int;
 
-pub extern "dwrite" fn DWriteCreateFactory(factoryType: DWRITE_FACTORY_TYPE, iid: *const GUID, factory: **Interface(IUnknown)) callconv(.C) c_long;
+pub extern "dwrite" fn DWriteCreateFactory(factoryType: DWRITE_FACTORY_TYPE, iid: *const GUID, factory: **c_void) callconv(.C) c_long;
+
+pub fn DEFINE_GUID(comptime l: c_ulong, comptime w1: c_ushort, comptime w2: c_ushort, comptime b1: u8, comptime b2: u8, comptime b3: u8, comptime b4: u8, comptime b5: u8, comptime b6: u8, comptime b7: u8, comptime b8: u8) GUID {
+    return .{
+        .Data1 = l,
+        .Data2 = w1,
+        .Data3 = w2,
+        .Data4 = .{ b1, b2, b3, b4, b5, b6, b7, b8 },
+    };
+}
+
+pub fn GUID_STRING(comptime guid: *const [36:0]u8) GUID {
+    const parseInt = @import("std").fmt.parseInt;
+    return .{
+        .Data1 = parseInt(c_ulong, guid[0..8], 16) catch unreachable,
+        .Data2 = parseInt(c_ushort, guid[9..13], 16) catch unreachable,
+        .Data3 = parseInt(c_ushort, guid[14..18], 16) catch unreachable,
+        .Data4 = .{
+            parseInt(u8, guid[19..21], 16) catch unreachable,
+            parseInt(u8, guid[21..23], 16) catch unreachable,
+            parseInt(u8, guid[24..26], 16) catch unreachable,
+            parseInt(u8, guid[26..28], 16) catch unreachable,
+            parseInt(u8, guid[28..30], 16) catch unreachable,
+            parseInt(u8, guid[30..32], 16) catch unreachable,
+            parseInt(u8, guid[32..34], 16) catch unreachable,
+            parseInt(u8, guid[34..36], 16) catch unreachable,
+        },
+    };
+}
