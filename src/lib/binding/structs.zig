@@ -135,6 +135,16 @@ pub const GUID = extern struct {
     Data4: [8]u8,
 };
 
+pub const FILETIME = extern struct {
+    dwLowDateTime: c_ulong,
+    dwHighDateTime: c_ulong,
+};
+
+pub const SIZE = extern struct {
+    cx: c_long,
+    cy: c_long,
+};
+
 pub fn Interface(comptime vtbl: type) type {
     return extern struct {
         lpVtbl: *vtbl,

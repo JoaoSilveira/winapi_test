@@ -9,17 +9,72 @@ var alloc: *std.mem.Allocator = undefined;
 // leavind WinMain because wWinMain is not recognized as a main function
 pub export fn WinMain(hInstance: ?*c_void, hPrevInstance: ?*c_void, szCmdLine: ?[*:0]u8, iCmdShow: c_int) callconv(.Stdcall) c_int {
     @setAlignStack(16);
-    var testing: *IUnknown = undefined;
+    var factory: *IDWriteFactory = undefined;
+    var heap = std.heap.HeapAllocator.init();
+    defer heap.deinit();
+    alloc = &heap.allocator;
 
-    const result = DWriteCreateFactory(
-        DWRITE_FACTORY_TYPE.DWRITE_FACTORY_TYPE_ISOLATED,
-        &IID_IDWriteFactory,
-        @ptrCast(**c_void, &testing)
-    );
+    if (DWriteCreateFactory(DWRITE_FACTORY_TYPE.DWRITE_FACTORY_TYPE_ISOLATED, &IID_IDWriteFactory, @ptrCast(**c_void, &factory)) < 0)
+        return -1;
+    defer _ = factory.*.lpVtbl.*.iunknown.Release(@ptrCast(*IUnknown, factory));
 
-    if (result < 0) return -1;
+    var fonts: *IDWriteFontCollection = undefined;
 
-    _ = testing.*.lpVtbl.*.Release(testing);
+    if (factory.*.lpVtbl.*.GetSystemFontCollection(factory, &fonts, 0) < 0)
+        return -1;
+    defer _ = fonts.*.lpVtbl.*.iunknown.Release(@ptrCast(*IUnknown, fonts));
+
+    var family_count = fonts.*.lpVtbl.*.GetFontFamilyCount(fonts);
+
+    var i: usize = 0;
+    while (i < family_count) : (i += 1) {
+        var font_family: *IDWriteFontFamily = undefined;
+
+        if (fonts.*.lpVtbl.*.GetFontFamily(fonts, @truncate(c_uint, i), &font_family) < 0)
+            continue;
+        defer _ = font_family.*.lpVtbl.*.idwritefontlist.iunknown.Release(@ptrCast(*IUnknown, font_family));
+
+        var family_names: *IDWriteLocalizedStrings = undefined;
+
+        if (font_family.*.lpVtbl.*.GetFamilyNames(font_family, &family_names) < 0)
+            continue;
+        defer _ = family_names.*.lpVtbl.*.iunknown.Release(@ptrCast(*IUnknown, family_names));
+
+        var locale_name = [_]u16{0} ** LOCALE_NAME_MAX_LENGTH;
+        var index: c_uint = 0;
+        var exists: c_int = 0;
+
+        var default_locale_success = GetUserDefaultLocaleName(&locale_name, LOCALE_NAME_MAX_LENGTH);
+
+        if (default_locale_success != 0) {
+            if (family_names.*.lpVtbl.*.FindLocaleName(family_names, @ptrCast([*:0]u16, &locale_name), &index, &exists) < 0)
+                continue;
+        }
+
+        if (exists == 0) {
+            var locale = STW(alloc, "en-us");
+            defer alloc.free(locale[0..6 :0]);
+
+            if (family_names.*.lpVtbl.*.FindLocaleName(family_names, locale, &index, &exists) < 0)
+                continue;
+        }
+
+        if (exists == 0)
+            index = 0;
+
+        var length: c_uint = 0;
+
+        if (family_names.*.lpVtbl.*.GetStringLength(family_names, index, &length) < 0)
+            continue;
+
+        var name = alloc.alloc(u16, length + 1) catch continue;
+        defer alloc.free(name);
+
+        if (family_names.*.lpVtbl.*.GetString(family_names, index, @ptrCast([*:0]u16, name.ptr), length + 1) < 0)
+            continue;
+
+        warn("{}\n", .{WTS(alloc, @ptrCast([*:0]const u16, name.ptr)[0..length :0])});
+    }
 
     return 0;
 
@@ -28,7 +83,7 @@ pub export fn WinMain(hInstance: ?*c_void, hPrevInstance: ?*c_void, szCmdLine: ?
     // alloc = &heap.allocator;
 
     // const appName = STW(alloc, "HelloWin");
-    
+
     // const initArgs = INITCOMMONCONTROLSEX { .dwICC = 0xFFFF };
     // if (InitCommonControlsEx(&initArgs) == 0) {
     //     warn("Could not Load common controls", .{});
@@ -66,7 +121,6 @@ pub export fn WinMain(hInstance: ?*c_void, hPrevInstance: ?*c_void, szCmdLine: ?
 
 var btn: ?*c_void = null;
 fn proc_teste(hWnd: ?*c_void, msg: c_uint, wParam: usize, lParam: isize) callconv(.Stdcall) isize {
-    
     switch (msg) {
         WM_CREATE => {
             const create_params = @intToPtr(*CREATESTRUCTW, @bitCast(usize, lParam));
@@ -114,9 +168,9 @@ fn proc_teste(hWnd: ?*c_void, msg: c_uint, wParam: usize, lParam: isize) callcon
                 BN_PAINT => warn("paint\n", .{}),
                 BN_SETFOCUS => warn("got focus\n", .{}),
                 BN_UNHILITE => warn("unhighlight\n", .{}),
-                else => warn("other message: {}\n", .{ wParam }),
+                else => warn("other message: {}\n", .{wParam}),
             }
-            warn("Command = {} - {} |=| {} - {}\n", .{(wParam >> 16) & 0xFFFF, wParam & 0xFFFF, (lParam >> 16) & 0xFFFF, lParam & 0xFFFF });
+            warn("Command = {} - {} |=| {} - {}\n", .{ (wParam >> 16) & 0xFFFF, wParam & 0xFFFF, (lParam >> 16) & 0xFFFF, lParam & 0xFFFF });
             return 0;
         },
         else => return DefWindowProcW(hWnd, msg, wParam, lParam),

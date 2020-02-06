@@ -1,4 +1,5 @@
 usingnamespace @import("structs.zig");
+const DWRITE_FACTORY_TYPE = @import("dwrite.zig").DWRITE_FACTORY_TYPE;
 
 pub extern "user32" fn BeginPaint(hWnd: *c_void, lpPaint: *PAINTSTRUCT) callconv(.Stdcall) ?*c_void;
 pub extern "user32" fn CreateWindowExW(dwExStyle: c_uint, lpClassName: ?[*:0]const u16, lpWindowName: ?[*:0]const u16, dwStyle: c_uint, X: c_int, Y: c_int, nWidth: c_int, nHeight: c_int, hWndParent: ?*c_void, hMenu: ?*c_void, hInstance: ?*c_void, lpParam: ?*c_void) callconv(.Stdcall) ?*c_void;
@@ -29,6 +30,7 @@ pub extern "kernel32" fn FreeLibrary(hLibModule: *c_void) callconv(.Stdcall) c_i
 pub extern "kernel32" fn GetModuleHandleW(lpModuleName: ?[*:0]const u16) callconv(.Stdcall) ?*c_void;
 pub extern "kernel32" fn GetProcAddress(hModule: *c_void, lpProcName: [*:0]const u8) callconv(.Stdcall) ?(fn () callconv(.Stdcall) isize);
 pub extern "kernel32" fn LoadLibraryW(lpLibFineName: [*:0]const u16) callconv(.Stdcall) ?*c_void;
+pub extern "kernel32" fn GetUserDefaultLocaleName(lpLocaleName: [*]u16, ccLocaleName: c_int) callconv(.Stdcall) c_int;
 
 pub extern "gdi32" fn GetStockObject(i: c_int) callconv(.Stdcall) ?*c_void;
 pub extern "gdi32" fn CreateFontIndirectW(lplf: *LOGFONTW) callconv(.Stdcall) ?*c_void;

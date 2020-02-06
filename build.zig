@@ -13,6 +13,7 @@ pub fn build(b: *Builder) void {
     exe.setBuildMode(b.standardReleaseOptions());
     exe.setOutputDir("bin");
     exe.linkSystemLibrary("dwrite");
+    exe.linkSystemLibrary("d2d1");
     exe.subsystem = std.Target.SubSystem.Windows;
 
     // could not make it work yet
@@ -32,10 +33,10 @@ pub fn build(b: *Builder) void {
     lib_step.dependOn(&lib.step);
 }
 
-const manifest_contents = 
+const manifest_contents =
     \\<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     \\<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
-    ++"<assemblyIdentity version=\"1.0.0.0\" processorArchitecture=\"*\" name=" ++ exe_name ++ " type=\"win32\"/>"++
+++ "<assemblyIdentity version=\"1.0.0.0\" processorArchitecture=\"*\" name=" ++ exe_name ++ " type=\"win32\"/>" ++
     \\<description>Zig Learning</description>
     \\<dependency>
     \\    <dependentAssembly>
