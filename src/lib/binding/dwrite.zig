@@ -1,6 +1,19 @@
-usingnamespace @import("structs.zig");
-usingnamespace @import("functions.zig");
 usingnamespace @import("dcommon.zig");
+
+const unknwn = @import("unknwn.zig");
+const structs = @import("structs.zig");
+const functions = @import("functions.zig");
+const util = @import("../util.zig");
+
+const Interface = util.Interface;
+const FILETIME = structs.FILETIME;
+const LOGFONTW = structs.LOGFONTW;
+const RECT = structs.RECT;
+const SIZE = structs.SIZE;
+const GUID = structs.GUID;
+const GUID_STRING = functions.GUID_STRING;
+const IUnknown = unknwn.IUnknown;
+const IUnknownVtbl = unknwn.IUnknownVtbl;
 
 pub const DWRITE_ALPHA_MAX = 255;
 pub const FACILITY_DWRITE = 0x898;
@@ -473,16 +486,6 @@ pub const DWRITE_HIT_TEST_METRICS = extern struct {
 pub const DWRITE_TEXTURE_TYPE = extern enum {
     DWRITE_TEXTURE_ALIASED_1x1,
     DWRITE_TEXTURE_CLEARTYPE_3x1,
-};
-
-pub const IID_IUnknown = DEFINE_GUID(0x00000000, 0x0000, 0x0000, 0x00, 0x00, 0xc0, 0x00, 0x00, 0x00, 0x00, 0x46);
-pub const IUnknown = Interface(IUnknownVtbl);
-pub const IUnknownVtbl = extern struct {
-    const Self = IUnknown;
-
-    QueryInterface: fn (this: *Self, riid: *const GUID, ppvObject: **c_void) callconv(.Stdcall) c_long,
-    AddRef: fn (this: *Self) callconv(.Stdcall) c_ulong,
-    Release: fn (this: *Self) callconv(.Stdcall) c_ulong,
 };
 
 pub const IID_IDWriteFactory = GUID_STRING("b859ee5a-d838-4b5b-a2e8-1adc7d93db48");
@@ -976,6 +979,8 @@ pub const IDWriteGlyphRunAnalysisVtbl = extern struct {
     CreateAlphaTexture: fn (this: *Self, textureType: DWRITE_TEXTURE_TYPE, textureBounds: *const RECT, alphaValues: [*]u8, bufferSize: c_uint) callconv(.Stdcall) c_long,
     GetAlphaBlendParams: fn (this: *Self, renderingParams: *IDWriteRenderingParams, blendGamma: *f32, blendEnhancedContrast: *f32, blendClearTypeLevel: *f32) callconv(.Stdcall) c_long,
 };
+
+pub extern "dwrite" fn DWriteCreateFactory(factoryType: DWRITE_FACTORY_TYPE, iid: *const GUID, factory: **c_void) callconv(.C) c_long;
 
 pub fn DWRITE_MAKE_OPENTYPE_TAG(a: u8, b: u8, c: u8, d: u8) u32 {
     return (@as(u32, d) << 24) | (@as(u32, c) << 16) | (@as(u32, b) << 8) | a;

@@ -1,5 +1,4 @@
 usingnamespace @import("structs.zig");
-const DWRITE_FACTORY_TYPE = @import("dwrite.zig").DWRITE_FACTORY_TYPE;
 
 pub extern "user32" fn BeginPaint(hWnd: *c_void, lpPaint: *PAINTSTRUCT) callconv(.Stdcall) ?*c_void;
 pub extern "user32" fn CreateWindowExW(dwExStyle: c_uint, lpClassName: ?[*:0]const u16, lpWindowName: ?[*:0]const u16, dwStyle: c_uint, X: c_int, Y: c_int, nWidth: c_int, nHeight: c_int, hWndParent: ?*c_void, hMenu: ?*c_void, hInstance: ?*c_void, lpParam: ?*c_void) callconv(.Stdcall) ?*c_void;
@@ -22,6 +21,7 @@ pub extern "user32" fn SystemParametersInfoW(uiAction: c_uint, uiParam: c_uint, 
 pub extern "user32" fn TranslateMessage(lpMsg: *const MSG) callconv(.Stdcall) c_int;
 pub extern "user32" fn UpdateWindow(hWnd: *c_void) callconv(.Stdcall) c_int;
 pub extern "user32" fn SendMessageW(hWnd: ?*c_void, Msg: c_uint, wParam: usize, lParam: isize) callconv(.Stdcall) isize;
+pub extern "user32" fn GetClientRect(hWnd: ?*c_void, lpRect: *RECT) callconv(.Stdcall) c_int;
 
 pub extern "comctl32" fn InitCommonControls() callconv(.Stdcall) void;
 pub extern "comctl32" fn InitCommonControlsEx(picce: *const INITCOMMONCONTROLSEX) callconv(.Stdcall) c_int;
@@ -31,12 +31,11 @@ pub extern "kernel32" fn GetModuleHandleW(lpModuleName: ?[*:0]const u16) callcon
 pub extern "kernel32" fn GetProcAddress(hModule: *c_void, lpProcName: [*:0]const u8) callconv(.Stdcall) ?(fn () callconv(.Stdcall) isize);
 pub extern "kernel32" fn LoadLibraryW(lpLibFineName: [*:0]const u16) callconv(.Stdcall) ?*c_void;
 pub extern "kernel32" fn GetUserDefaultLocaleName(lpLocaleName: [*]u16, ccLocaleName: c_int) callconv(.Stdcall) c_int;
+pub extern "kernel32" fn ExitProcess(exit_code: c_uint) callconv(.Stdcall) noreturn;
 
 pub extern "gdi32" fn GetStockObject(i: c_int) callconv(.Stdcall) ?*c_void;
 pub extern "gdi32" fn CreateFontIndirectW(lplf: *LOGFONTW) callconv(.Stdcall) ?*c_void;
 pub extern "gdi32" fn DeleteObject(ho: ?*c_void) callconv(.Stdcall) c_int;
-
-pub extern "dwrite" fn DWriteCreateFactory(factoryType: DWRITE_FACTORY_TYPE, iid: *const GUID, factory: **c_void) callconv(.C) c_long;
 
 pub fn DEFINE_GUID(comptime l: c_ulong, comptime w1: c_ushort, comptime w2: c_ushort, comptime b1: u8, comptime b2: u8, comptime b3: u8, comptime b4: u8, comptime b5: u8, comptime b6: u8, comptime b7: u8, comptime b8: u8) GUID {
     return .{

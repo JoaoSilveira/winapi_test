@@ -144,9 +144,3 @@ pub const SIZE = extern struct {
     cx: c_long,
     cy: c_long,
 };
-
-pub fn Interface(comptime vtbl: type) type {
-    return extern struct {
-        lpVtbl: *vtbl,
-    };
-}
