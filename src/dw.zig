@@ -12,63 +12,65 @@ const std = @import("std");
 
 const warn = std.debug.warn;
 
+var alloc: *std.mem.Allocator = undefined;
+
 pub fn listSystemFonts(hInstance: ?*c_void) c_uint {
     var factory: *IDWriteFactory = undefined;
     var heap = std.heap.HeapAllocator.init();
     defer heap.deinit();
-    var alloc = &heap.allocator;
+    alloc = &heap.allocator;
 
-    if (DWriteCreateFactory(DWRITE_FACTORY_TYPE.DWRITE_FACTORY_TYPE_ISOLATED, &IID_IDWriteFactory, @ptrCast(**c_void, &factory)) < 0)
+    if (DWriteCreateFactory(DWRITE_FACTORY_TYPE.ISOLATED, &IDWriteFactory.IID, @ptrCast(*?*c_void, &factory)) < 0)
         return 0xFFFFFFFF;
-    defer _ = factory.*.lpVtbl.*.iunknown.Release(@ptrCast(*IUnknown, factory));
+    defer _ = factory.Release();
 
     var fonts: *IDWriteFontCollection = undefined;
 
-    if (factory.*.lpVtbl.*.GetSystemFontCollection(factory, &fonts, 0) < 0)
+    if (factory.GetSystemFontCollection(@ptrCast(*?*IDWriteFontCollection, &fonts), false) < 0)
         return 0xFFFFFFFF;
-    defer _ = fonts.*.lpVtbl.*.iunknown.Release(@ptrCast(*IUnknown, fonts));
+    defer _ = fonts.Release();
 
-    var family_count = fonts.*.lpVtbl.*.GetFontFamilyCount(fonts);
+    var family_count = fonts.GetFontFamilyCount();
 
     var i: usize = 0;
     while (i < family_count) : (i += 1) {
         var font_family: *IDWriteFontFamily = undefined;
 
-        if (fonts.*.lpVtbl.*.GetFontFamily(fonts, @truncate(c_uint, i), &font_family) < 0)
+        if (fonts.GetFontFamily(@truncate(c_uint, i), @ptrCast(*?*IDWriteFontFamily, &font_family)) < 0)
             continue;
-        defer _ = font_family.*.lpVtbl.*.idwritefontlist.iunknown.Release(@ptrCast(*IUnknown, font_family));
+        defer _ = font_family.Release();
 
         var family_names: *IDWriteLocalizedStrings = undefined;
 
-        if (font_family.*.lpVtbl.*.GetFamilyNames(font_family, &family_names) < 0)
+        if (font_family.GetFamilyNames(@ptrCast(*?*IDWriteLocalizedStrings, &family_names)) < 0)
             continue;
-        defer _ = family_names.*.lpVtbl.*.iunknown.Release(@ptrCast(*IUnknown, family_names));
+        defer _ = family_names.Release();
 
-        var locale_name = [_]u16{0} ** LOCALE_NAME_MAX_LENGTH;
-        var index: c_uint = 0;
-        var exists: c_int = 0;
+        var locale_name: [LOCALE_NAME_MAX_LENGTH:0]u16 = undefined;
+        var index: u32 = 0;
+        var exists = false;
 
         var default_locale_success = GetUserDefaultLocaleName(&locale_name, LOCALE_NAME_MAX_LENGTH);
 
         if (default_locale_success != 0) {
-            if (family_names.*.lpVtbl.*.FindLocaleName(family_names, @ptrCast([*:0]u16, &locale_name), &index, &exists) < 0)
+            if (family_names.FindLocaleName(@ptrCast([:0]u16, locale_name[0..:0]), &index, &exists) < 0)
                 continue;
         }
 
-        if (exists == 0) {
+        if (exists) {
             var locale = STW(alloc, "en-us");
-            defer alloc.free(locale[0..6 :0]);
+            defer free(alloc, locale);
 
-            if (family_names.*.lpVtbl.*.FindLocaleName(family_names, locale, &index, &exists) < 0)
+            if (family_names.FindLocaleName(locale, &index, &exists) < 0)
                 continue;
         }
 
-        if (exists == 0)
+        if (exists)
             index = 0;
 
-        var length: c_uint = 0;
+        var length: u32 = 0;
 
-        if (family_names.*.lpVtbl.*.GetStringLength(family_names, index, &length) < 0)
+        if (family_names.GetStringLength(index, &length) < 0)
             continue;
 
         var name = alloc.alloc(u16, length + 1) catch continue;
@@ -83,7 +85,6 @@ pub fn listSystemFonts(hInstance: ?*c_void) c_uint {
     return 0;
 }
 
-var alloc: *std.mem.Allocator = undefined;
 //https://docs.microsoft.com/en-gb/windows/win32/directwrite/getting-started-with-directwrite#drawing-simple-text
 pub fn drawingSimpleText(hInstance: ?*c_void) c_uint {
     var heap = std.heap.HeapAllocator.init();
@@ -153,20 +154,22 @@ fn simpleTextProc(hwnd: ?*c_void, msg: c_uint, wparam: usize, lparam: isize) cal
             if (D2D1CreateFactory(D2D1_FACTORY_TYPE.D2D1_FACTORY_TYPE_SINGLE_THREADED, &IID_ID2D1Factory, &fac_opt, @ptrCast(**c_void, &par.d2d_fac)) < 0)
                 return -1;
 
-            if (DWriteCreateFactory(DWRITE_FACTORY_TYPE.DWRITE_FACTORY_TYPE_SHARED, &IID_IDWriteFactory, @ptrCast(**c_void, &par.write_fac)) < 0)
+            if (DWriteCreateFactory(DWRITE_FACTORY_TYPE.SHARED, &IID_IDWriteFactory, @ptrCast(*?*c_void, &par.write_fac)) < 0)
                 return -1;
 
             par.text = STW(alloc, "Hello World using DirectWrite!");
             par.font = STW(alloc, "Gabriola");
             par.locale = STW(alloc, "en-us");
 
-            if (par.write_fac.*.lpVtbl.*.CreateTextFormat(par.write_fac, par.font, null, DWRITE_FONT_WEIGHT.DWRITE_FONT_WEIGHT_REGULAR, DWRITE_FONT_STYLE.DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH.DWRITE_FONT_STRETCH_NORMAL, 72, par.locale, &par.txt_fmt) < 0)
+            var txt_fmt: ?*IDWriteTextFormat = null;
+            if (par.write_fac.CreateTextFormat(par.font, null, DWRITE_FONT_WEIGHT.REGULAR, DWRITE_FONT_STYLE.NORMAL, DWRITE_FONT_STRETCH.NORMAL, 72, par.locale, &txt_fmt) < 0)
+                return -1;
+            par.txt_fmt = txt_fmt.?;
+
+            if (par.txt_fmt.*.lpVtbl.*.SetTextAlignment(par.txt_fmt, DWRITE_TEXT_ALIGNMENT.CENTER) < 0)
                 return -1;
 
-            if (par.txt_fmt.*.lpVtbl.*.SetTextAlignment(par.txt_fmt, DWRITE_TEXT_ALIGNMENT.DWRITE_TEXT_ALIGNMENT_CENTER) < 0)
-                return -1;
-
-            if (par.txt_fmt.*.lpVtbl.*.SetParagraphAlignment(par.txt_fmt, DWRITE_PARAGRAPH_ALIGNMENT.DWRITE_PARAGRAPH_ALIGNMENT_CENTER) < 0)
+            if (par.txt_fmt.*.lpVtbl.*.SetParagraphAlignment(par.txt_fmt, DWRITE_PARAGRAPH_ALIGNMENT.CENTER) < 0)
                 return -1;
 
             return 0;

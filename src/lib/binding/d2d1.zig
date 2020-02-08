@@ -12,7 +12,7 @@ const std = @import("std");
 const wincodec = @import("wincodec.zig");
 
 const Interface = util.Interface;
-const IUnknownVtbl = unknwn.IUnknownVtbl;
+const IUnknown = unknwn.IUnknown;
 const GUID_STRING = functions.GUID_STRING;
 const max = std.math.max;
 const GUID = structs.GUID;
@@ -365,7 +365,7 @@ pub const ID2D1ResourceVtbl = extern struct {
     const Self = ID2D1Resource;
 
     // IUnknown
-    iunknown: IUnknownVtbl,
+    iunknown: IUnknown.Vtbl,
 
     // ID2D1Resource
     GetFactory: fn (this: *Self, factory: **ID2D1Factory) callconv(.Stdcall) void,
@@ -611,7 +611,7 @@ pub const ID2D1SimplifiedGeometrySinkVtbl = extern struct {
     const Self = ID2D1SimplifiedGeometrySink;
 
     // IUnknown
-    iunknown: IUnknownVtbl,
+    iunknown: IUnknown.Vtbl,
 
     // ID2D1SimplifiedGeometrySink
     SetFillMode: fn (this: *Self, fillMode: D2D1_FILL_MODE) callconv(.Stdcall) void,
@@ -645,7 +645,7 @@ pub const ID2D1TessellationSinkVtbl = extern struct {
     const Self = ID2D1TessellationSink;
 
     // IUnknown
-    iunknown: IUnknownVtbl,
+    iunknown: IUnknown.Vtbl,
 
     // ID2D1TessellationSink
     AddTriangles: fn (this: *Self, triangles: [*]const D2D1_TRIANGLE, trianglesCount: c_uint) callconv(.Stdcall) void,
@@ -802,7 +802,7 @@ pub const ID2D1GdiInteropRenderTargetVtbl = extern struct {
     const Self = ID2D1GdiInteropRenderTarget;
 
     // IUnknown
-    iunknown: IUnknownVtbl,
+    iunknown: IUnknown.Vtbl,
 
     // ID2D1GdiInteropRenderTarget
     GetDC: fn (this: *Self, mode: D2D1_DC_INITIALIZE_MODE, hdc: **c_void) callconv(.Stdcall) c_long,
@@ -827,7 +827,7 @@ pub const ID2D1FactoryVtbl = extern struct {
     const Self = ID2D1Factory;
 
     // IUnknown
-    iunknown: IUnknownVtbl,
+    iunknown: IUnknown.Vtbl,
 
     // ID2D1Factory
     ReloadSystemMetrics: fn (this: *Self) callconv(.Stdcall) c_long,

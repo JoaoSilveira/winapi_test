@@ -7,7 +7,7 @@ pub const binding = struct {
 };
 
 /// String To Wide
-pub fn STW(allocator: *std.mem.Allocator, str: [:0]const u8) [*:0]u16 {
+pub fn STW(allocator: *std.mem.Allocator, str: [:0]const u8) [:0]u16 {
     return std.unicode.utf8ToUtf16LeWithNull(allocator, str) catch unreachable;
 }
 
