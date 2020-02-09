@@ -7,7 +7,6 @@ const structs = @import("structs.zig");
 const unknwn = @import("unknwn.zig");
 
 const Interface = util.Interface;
-const IUnknownVtbl = unknwn.IUnknownVtbl;
 const IUnknown = unknwn.IUnknown;
 const GUID_STRING = functions.GUID_STRING;
 const GUID = structs.GUID;
@@ -44,7 +43,7 @@ pub const IDXGIObjectVtbl = extern struct {
     const Self = IDXGIObject;
 
     // IUnknown
-    iunknown: IUnknownVtbl,
+    iunknown: IUnknown.Vtbl,
 
     // IDXGIObject
     SetPrivateData: fn (this: *Self, Name: *const GUID, DataSize: c_uint, pData: *const c_void) callconv(.Stdcall) c_long,

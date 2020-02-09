@@ -4,7 +4,6 @@ usingnamespace @import("lib/binding/d2d1.zig");
 usingnamespace @import("lib/binding/dwrite.zig");
 usingnamespace @import("lib/binding/unknwn.zig");
 usingnamespace @import("lib/winapi.zig");
-usingnamespace binding;
 usingnamespace @import("lib/util.zig");
 usingnamespace @import("lib/binding/dxgiformat.zig");
 
@@ -59,7 +58,7 @@ pub fn listSystemFonts(hInstance: ?*c_void) c_uint {
 
         if (exists) {
             var locale = STW(alloc, "en-us");
-            defer free(alloc, locale);
+            defer alloc.free(locale);
 
             if (family_names.FindLocaleName(locale, &index, &exists) < 0)
                 continue;
@@ -73,10 +72,10 @@ pub fn listSystemFonts(hInstance: ?*c_void) c_uint {
         if (family_names.GetStringLength(index, &length) < 0)
             continue;
 
-        var name = alloc.alloc(u16, length + 1) catch continue;
+        var name = allocSen(alloc, u16, length, 0) catch continue;
         defer alloc.free(name);
 
-        if (family_names.*.lpVtbl.*.GetString(family_names, index, @ptrCast([*:0]u16, name.ptr), length + 1) < 0)
+        if (family_names.GetString(index, name) < 0)
             continue;
 
         warn("{}\n", .{WTS(alloc, @ptrCast([*:0]const u16, name.ptr)[0..length :0])});
@@ -92,7 +91,7 @@ pub fn drawingSimpleText(hInstance: ?*c_void) c_uint {
     alloc = &heap.allocator;
 
     const appName = STW(alloc, "simple_text");
-    defer free(alloc, appName);
+    defer alloc.free(appName);
 
     const initArgs = INITCOMMONCONTROLSEX{ .dwICC = 0xFFFF };
     if (InitCommonControlsEx(&initArgs) == 0) {
@@ -105,20 +104,54 @@ pub fn drawingSimpleText(hInstance: ?*c_void) c_uint {
         .cbClsExtra = 0,
         .cbWndExtra = 0,
         .hInstance = hInstance,
-        .hIcon = LoadImageW(null, @intToPtr([*:0]const u16, OIC_SAMPLE), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED),
-        .hCursor = LoadImageW(null, @intToPtr([*:0]const u16, OCR_NORMAL), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_SHARED),
+        .hIcon = LoadImageW(
+            null,
+            @intToPtr([*:0]const u16, OIC_SAMPLE),
+            IMAGE_ICON,
+            0,
+            0,
+            LR_DEFAULTSIZE | LR_SHARED,
+        ),
+        .hCursor = LoadImageW(
+            null,
+            @intToPtr([*:0]const u16, OCR_NORMAL),
+            IMAGE_CURSOR,
+            0,
+            0,
+            LR_DEFAULTSIZE | LR_SHARED,
+        ),
         .hbrBackground = GetStockObject(WHITE_BRUSH),
         .lpszMenuName = null,
         .lpszClassName = appName,
-        .hIconSm = LoadImageW(null, @intToPtr([*:0]const u16, OIC_SAMPLE), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED),
+        .hIconSm = LoadImageW(
+            null,
+            @intToPtr([*:0]const u16, OIC_SAMPLE),
+            IMAGE_ICON,
+            0,
+            0,
+            LR_DEFAULTSIZE | LR_SHARED,
+        ),
     };
 
     if (RegisterClassExW(&wndClass) == 0) return 0xFFFFFFFF;
 
     const caption = STW(alloc, "Drawing a simple text with DirectWrite");
-    defer free(alloc, caption);
+    defer alloc.free(caption);
 
-    var hwnd = CreateWindowExW(0, appName, caption, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, null, null, hInstance, null) orelse return 0xFFFFFFFF;
+    var hwnd = CreateWindowExW(
+        0,
+        appName,
+        caption,
+        WS_OVERLAPPEDWINDOW,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT,
+        null,
+        null,
+        hInstance,
+        null,
+    ) orelse return 0xFFFFFFFF;
 
     var aux = ShowWindow(hwnd, SW_SHOWDEFAULT);
     aux = UpdateWindow(hwnd);
@@ -138,9 +171,9 @@ const Params = struct {
     d2d_fac: *ID2D1Factory,
     render_tgt: ?*ID2D1HwndRenderTarget,
     black_brush: ?*ID2D1SolidColorBrush,
-    text: [*:0]u16,
-    font: [*:0]u16,
-    locale: [*:0]u16,
+    text: [:0]u16,
+    font: [:0]u16,
+    locale: [:0]u16,
 };
 
 var par: Params = undefined;
@@ -148,13 +181,22 @@ fn simpleTextProc(hwnd: ?*c_void, msg: c_uint, wparam: usize, lparam: isize) cal
     switch (msg) {
         WM_CREATE => {
             const fac_opt = D2D1_FACTORY_OPTIONS{
-                .debugLevel = D2D1_DEBUG_LEVEL.D2D1_DEBUG_LEVEL_INFORMATION,
+                .debugLevel = D2D1_DEBUG_LEVEL.INFORMATION,
             };
 
-            if (D2D1CreateFactory(D2D1_FACTORY_TYPE.D2D1_FACTORY_TYPE_SINGLE_THREADED, &IID_ID2D1Factory, &fac_opt, @ptrCast(**c_void, &par.d2d_fac)) < 0)
+            if (D2D1CreateFactory(
+                D2D1_FACTORY_TYPE.SINGLE_THREADED,
+                &ID2D1Factory.IID,
+                &fac_opt,
+                @ptrCast(*?*c_void, &par.d2d_fac),
+            ) < 0)
                 return -1;
 
-            if (DWriteCreateFactory(DWRITE_FACTORY_TYPE.SHARED, &IID_IDWriteFactory, @ptrCast(*?*c_void, &par.write_fac)) < 0)
+            if (DWriteCreateFactory(
+                DWRITE_FACTORY_TYPE.SHARED,
+                &IDWriteFactory.IID,
+                @ptrCast(*?*c_void, &par.write_fac),
+            ) < 0)
                 return -1;
 
             par.text = STW(alloc, "Hello World using DirectWrite!");
@@ -180,15 +222,15 @@ fn simpleTextProc(hwnd: ?*c_void, msg: c_uint, wparam: usize, lparam: isize) cal
                 return 0;
 
             const rt_prop = D2D1_RENDER_TARGET_PROPERTIES{
-                ._type = D2D1_RENDER_TARGET_TYPE.D2D1_RENDER_TARGET_TYPE_DEFAULT,
+                ._type = D2D1_RENDER_TARGET_TYPE.DEFAULT,
                 .pixelFormat = .{
                     .format = DXGI_FORMAT.DXGI_FORMAT_UNKNOWN,
-                    .alphaMode = D2D1_ALPHA_MODE.D2D1_ALPHA_MODE_UNKNOWN,
+                    .alphaMode = D2D1_ALPHA_MODE.UNKNOWN,
                 },
                 .dpiX = 0,
                 .dpiY = 0,
-                .usage = D2D1_RENDER_TARGET_USAGE.D2D1_RENDER_TARGET_USAGE_NONE,
-                .minLevel = D2D1_FEATURE_LEVEL.D2D1_FEATURE_LEVEL_DEFAULT,
+                .usage = D2D1_RENDER_TARGET_USAGE.NONE,
+                .minLevel = D2D1_FEATURE_LEVEL._DEFAULT,
             };
             const hwnd_prop = D2D1_HWND_RENDER_TARGET_PROPERTIES{
                 .hwnd = hwnd,
@@ -196,14 +238,18 @@ fn simpleTextProc(hwnd: ?*c_void, msg: c_uint, wparam: usize, lparam: isize) cal
                     .width = @intCast(c_uint, rc.right - rc.left),
                     .height = @intCast(c_uint, rc.bottom - rc.top),
                 },
-                .presentOptions = D2D1_PRESENT_OPTIONS.D2D1_PRESENT_OPTIONS_NONE,
+                .presentOptions = D2D1_PRESENT_OPTIONS.NONE,
             };
 
-            if (par.d2d_fac.*.lpVtbl.*.CreateHwndRenderTarget(par.d2d_fac, &rt_prop, &hwnd_prop, @ptrCast(**ID2D1HwndRenderTarget, &par.render_tgt)) < 0) {
+            if (par.d2d_fac.CreateHwndRenderTarget(
+                &rt_prop,
+                &hwnd_prop,
+                @ptrCast(*?*ID2D1HwndRenderTarget, &par.render_tgt),
+            ) < 0) {
                 par.render_tgt = null;
                 return 0;
             }
-            defer _ = par.render_tgt.?.*.lpVtbl.*.id2d1rendertarget.id2d1resource.iunknown.Release(@ptrCast(*IUnknown, par.render_tgt.?));
+            defer _ = par.render_tgt.?.Release();
 
             const black = D3DCOLORVALUE{
                 .r = 0,
@@ -212,14 +258,14 @@ fn simpleTextProc(hwnd: ?*c_void, msg: c_uint, wparam: usize, lparam: isize) cal
                 .a = 1,
             };
 
-            if (par.render_tgt.?.*.lpVtbl.*.id2d1rendertarget.CreateSolidColorBrush(@ptrCast(*ID2D1RenderTarget, par.render_tgt.?), &black, null, @ptrCast(**ID2D1SolidColorBrush, &par.black_brush)) < 0) {
+            if (par.render_tgt.?.CreateSolidColorBrush(&black, null, &par.black_brush) < 0) {
                 par.black_brush = null;
                 return 0;
             }
-            defer _ = par.black_brush.?.*.lpVtbl.*.id2d1brush.id2d1resource.iunknown.Release(@ptrCast(*IUnknown, par.black_brush.?));
+            defer _ = par.black_brush.?.Release();
 
-            par.render_tgt.?.*.lpVtbl.id2d1rendertarget.BeginDraw(@ptrCast(*ID2D1RenderTarget, par.render_tgt.?));
-            defer warn("{}\n", .{par.render_tgt.?.*.lpVtbl.id2d1rendertarget.EndDraw(@ptrCast(*ID2D1RenderTarget, par.render_tgt.?), null, null)});
+            par.render_tgt.?.BeginDraw();
+            defer _ = par.render_tgt.?.EndDraw(null, null);
 
             const identity = D2D1_MATRIX_3X2_F{
                 .matrix = .{
@@ -232,7 +278,7 @@ fn simpleTextProc(hwnd: ?*c_void, msg: c_uint, wparam: usize, lparam: isize) cal
                 },
             };
 
-            par.render_tgt.?.*.lpVtbl.id2d1rendertarget.SetTransform(@ptrCast(*ID2D1RenderTarget, par.render_tgt.?), &identity);
+            par.render_tgt.?.SetTransform(&identity);
 
             const white = D3DCOLORVALUE{
                 .r = 1,
@@ -241,7 +287,7 @@ fn simpleTextProc(hwnd: ?*c_void, msg: c_uint, wparam: usize, lparam: isize) cal
                 .a = 1,
             };
 
-            par.render_tgt.?.*.lpVtbl.id2d1rendertarget.Clear(@ptrCast(*ID2D1RenderTarget, par.render_tgt.?), &white);
+            par.render_tgt.?.Clear(&white);
 
             var d2d_rc = D2D_RECT_F{
                 .left = @intToFloat(f32, rc.left),
@@ -250,18 +296,25 @@ fn simpleTextProc(hwnd: ?*c_void, msg: c_uint, wparam: usize, lparam: isize) cal
                 .bottom = @intToFloat(f32, rc.bottom),
             };
 
-            par.render_tgt.?.*.lpVtbl.id2d1rendertarget.DrawText(@ptrCast(*ID2D1RenderTarget, par.render_tgt.?), par.text, @truncate(c_uint, len(par.text)), par.txt_fmt, &d2d_rc, @ptrCast(*ID2D1Brush, par.black_brush.?), D2D1_DRAW_TEXT_OPTIONS.D2D1_DRAW_TEXT_OPTIONS_NONE, DWRITE_MEASURING_MODE.DWRITE_MEASURING_MODE_NATURAL);
+            par.render_tgt.?.DrawText(
+                par.text,
+                par.txt_fmt,
+                &d2d_rc,
+                @ptrCast(*ID2D1Brush, par.black_brush.?),
+                D2D1_DRAW_TEXT_OPTIONS.NONE,
+                DWRITE_MEASURING_MODE.NATURAL,
+            );
 
             return 0;
         },
         WM_DESTROY => {
-            free(alloc, par.text);
-            free(alloc, par.font);
-            free(alloc, par.locale);
+            alloc.free(par.text);
+            alloc.free(par.font);
+            alloc.free(par.locale);
 
-            _ = par.txt_fmt.*.lpVtbl.iunknown.Release(@ptrCast(*IUnknown, par.txt_fmt));
-            _ = par.write_fac.*.lpVtbl.iunknown.Release(@ptrCast(*IUnknown, par.write_fac));
-            _ = par.d2d_fac.*.lpVtbl.iunknown.Release(@ptrCast(*IUnknown, par.d2d_fac));
+            _ = par.txt_fmt.Release();
+            _ = par.write_fac.Release();
+            _ = par.d2d_fac.Release();
 
             PostQuitMessage(0);
 

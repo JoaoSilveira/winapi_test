@@ -1,5 +1,4 @@
-usingnamespace @import("dcommon.zig");
-
+const dcommon = @import("dcommon.zig");
 const d2d1 = @import("d2d1.zig");
 const unknwn = @import("unknwn.zig");
 const structs = @import("structs.zig");
@@ -8,6 +7,7 @@ const util = @import("../util.zig");
 const winerror = @import("winerror.zig");
 const std = @import("std");
 
+const DWRITE_MEASURING_MODE = dcommon.DWRITE_MEASURING_MODE;
 pub const IDWriteGeometrySink = d2d1.ID2D1SimplifiedGeometrySink;
 const Interface = util.Interface;
 const FILETIME = structs.FILETIME;
@@ -17,8 +17,6 @@ const SIZE = structs.SIZE;
 const GUID = structs.GUID;
 const GUID_STRING = functions.GUID_STRING;
 const IUnknown = unknwn.IUnknown;
-const SEVERITY_ERROR = winerror.SEVERITY_ERROR;
-const MAKE_HRESULT = winerror.MAKE_HRESULT;
 const assert = std.debug.assert;
 
 /// Maximum alpha value in a texture returned by IDWriteGlyphRunAnalysis::CreateAlphaTexture.
@@ -528,7 +526,7 @@ pub const DWRITE_LINE_BREAKPOINT = extern struct {
 
     /// Breaking condition before the character.
     pub inline fn breakConditionBefore(self: Self) u2 {
-        return @truncate(u2, data);
+        return @truncate(u2, self.data);
     }
 
     /// Breaking condition before the character.
@@ -1669,9 +1667,9 @@ pub const IDWriteLocalFontFileLoader = extern struct {
         idwritefontfileloader: IDWriteFontFileLoader.Vtbl,
 
         // IDWriteLocalFontFileLoader
-        GetFilePathLengthFromKey: fn (self: *Self, fontFileReferenceKey: [*]const c_void, fontFileReferenceKeySize: u32, filePathLength: *u32) callconv(.Stdcall) c_ulong,
-        GetFilePathFromKey: fn (self: *Self, fontFileReferenceKey: [*]const c_void, fontFileReferenceKeySize: u32, filePath: [*:0]u16, filePathSize: u32) callconv(.Stdcall) c_ulong,
-        GetLastWriteTimeFromKey: fn (self: *Self, fontFileReferenceKey: [*]const c_void, fontFileReferenceKeySize: u32, lastWriteTime: *FILETIME) callconv(.Stdcall) c_ulong,
+        GetFilePathLengthFromKey: fn (self: *Self, fontFileReferenceKey: *const c_void, fontFileReferenceKeySize: u32, filePathLength: *u32) callconv(.Stdcall) i32,
+        GetFilePathFromKey: fn (self: *Self, fontFileReferenceKey: *const c_void, fontFileReferenceKeySize: u32, filePath: [*:0]u16, filePathSize: u32) callconv(.Stdcall) i32,
+        GetLastWriteTimeFromKey: fn (self: *Self, fontFileReferenceKey: *const c_void, fontFileReferenceKeySize: u32, lastWriteTime: *FILETIME) callconv(.Stdcall) i32,
     };
 
     lpVtbl: *Vtbl,
@@ -1725,7 +1723,6 @@ pub const IDWriteLocalFontFileLoader = extern struct {
             self,
             fontFileReferenceKey,
             fontFileReferenceKeySize,
-            filePath,
             filePath.ptr,
             @truncate(u32, filePath.len),
         );
@@ -1877,7 +1874,7 @@ pub const IDWriteFontFile = extern struct {
         fontFaceType: ?*DWRITE_FONT_FACE_TYPE,
         numberOfFaces: *u32,
     ) c_ulong {
-        var is_supported_font_type: i32 = @boolToInt(isSupportedFontType);
+        var is_supported_font_type: i32 = 0;
 
         const ret = self.lpVtbl.*.Analyze(
             self,
@@ -1887,8 +1884,7 @@ pub const IDWriteFontFile = extern struct {
             numberOfFaces,
         );
 
-        isSupportedFontType = is_supported_font_type != 0;
-
+        isSupportedFontType.* = is_supported_font_type != 0;
         return ret;
     }
 };
@@ -2058,7 +2054,7 @@ pub const IDWriteFontFace = extern struct {
         tableContext: *?*c_void,
         exists: *bool,
     ) i32 {
-        var exists_aux: i32 = @boolToInt(exists);
+        var exists_aux: i32 = 0;
         const ret = self.lpVtbl.*.TryGetFontTable(
             self,
             openTypeTableTag,
@@ -2067,7 +2063,7 @@ pub const IDWriteFontFace = extern struct {
             tableContext,
             &exists_aux,
         );
-        exists = exists_aux != 0;
+        exists.* = exists_aux != 0;
         return ret;
     }
 
@@ -2085,15 +2081,15 @@ pub const IDWriteFontFace = extern struct {
         isRightToLeft: bool,
         geometrySink: *IDWriteGeometrySink,
     ) i32 {
-        assert(if (glyphAdvances) |g| glyphOffsets != null else glyphOffsets == null);
-        assert(glyphAdvances == null or glyphAdvances.len == glyphOffsets.len);
+        assert(if (glyphAdvances != null) glyphOffsets != null else glyphOffsets == null);
+        assert(glyphAdvances == null or glyphAdvances.?.len == glyphOffsets.?.len);
 
         return self.lpVtbl.*.GetGlyphRunOutline(
             self,
             emSize,
-            glyphIndices,
-            glyphAdvances,
-            glyphOffsets,
+            glyphIndices.ptr,
+            glyphAdvances.?.ptr,
+            glyphOffsets.?.ptr,
             @truncate(u32, glyphIndices.len),
             @as(i32, @boolToInt(isSideways)),
             @as(i32, @boolToInt(isRightToLeft)),
@@ -2113,6 +2109,7 @@ pub const IDWriteFontFace = extern struct {
             self,
             emSize,
             pixelsPerDip,
+            measuringMode,
             renderingParams,
             renderingMode,
         );
@@ -2232,13 +2229,13 @@ pub const IDWriteFontFileEnumerator = extern struct {
         self: *Self,
         hasCurrentFile: *bool,
     ) i32 {
-        var has_current_file: i32 = @boolToInt(hasCurrentFile);
+        var has_current_file: i32 = 0;
 
         const ret = self.lpVtbl.*.MoveNext(
             self,
             &has_current_file,
         );
-        hasCurrentFile = has_current_file != 0;
+        hasCurrentFile.* = has_current_file != 0;
 
         return ret;
     }
@@ -2294,7 +2291,7 @@ pub const IDWriteLocalizedStrings = extern struct {
         index: *u32,
         exists: *bool,
     ) i32 {
-        var exists_aux: i32 = @boolToInt(exists.*);
+        var exists_aux: i32 = 0;
         const ret = self.lpVtbl.*.FindLocaleName(
             self,
             localeName.ptr,
@@ -2407,7 +2404,7 @@ pub const IDWriteFontCollection = extern struct {
         index: *u32,
         exists: *bool,
     ) i32 {
-        var exists_aux: i32 = @boolToInt(exists);
+        var exists_aux: i32 = 0;
         const ret = self.lpVtbl.*.FindFamilyName(
             self,
             familyName.ptr,
@@ -2415,7 +2412,7 @@ pub const IDWriteFontCollection = extern struct {
             &exists_aux,
         );
 
-        exists = exists_aux != 0;
+        exists.* = exists_aux != 0;
         return ret;
     }
 
@@ -2426,7 +2423,7 @@ pub const IDWriteFontCollection = extern struct {
     ) i32 {
         return self.lpVtbl.*.GetFontFromFontFace(
             self,
-            fontface,
+            fontFace,
             font,
         );
     }
@@ -2634,7 +2631,7 @@ pub const IDWriteFont = extern struct {
         informationalStrings: *?*IDWriteLocalizedStrings,
         exists: *bool,
     ) i32 {
-        var exists_aux: i32 = @boolToInt(exists);
+        var exists_aux: i32 = 0;
         const ret = self.lpVtbl.*.GetInformationalStrings(
             self,
             informationalStringID,
@@ -2642,7 +2639,7 @@ pub const IDWriteFont = extern struct {
             &exists_aux,
         );
 
-        exists = exists_aux != 0;
+        exists.* = exists_aux != 0;
         return ret;
     }
 
@@ -2655,16 +2652,16 @@ pub const IDWriteFont = extern struct {
     }
 
     pub inline fn HasCharacter(self: *Self, unicodeValue: u32, exists: *bool) i32 {
-        var exists_aux: i32 = @boolToInt(exists);
+        var exists_aux: i32 = 0;
 
         const ret = self.lpVtbl.*.HasCharacter(self, unicodeValue, &exists_aux);
 
-        exists = exists_aux != 0;
+        exists.* = exists_aux != 0;
         return ret;
     }
 
     pub inline fn CreateFontFace(self: *Self, fontFace: *?*IDWriteFontFace) i32 {
-        return self.lpVtbl.*.CreateFontFace(self, fontface);
+        return self.lpVtbl.*.CreateFontFace(self, fontFace);
     }
 };
 
@@ -2857,7 +2854,7 @@ pub const IDWriteTextFormat = extern struct {
     }
 
     pub inline fn GetLocaleName(self: *Self, localeName: [:0]u16) i32 {
-        return self.lpVtbl.*.GetLocaleName(self, localeName.ptr, @trucate(u32, localeName.len));
+        return self.lpVtbl.*.GetLocaleName(self, localeName.ptr, @truncate(u32, localeName.len));
     }
 };
 
@@ -3005,7 +3002,7 @@ pub const IDWriteTextAnalysisSource = extern struct {
             self,
             textPosition,
             textLength,
-            textString,
+            localeName,
         );
     }
 
@@ -3210,8 +3207,8 @@ pub const IDWriteTextAnalyzer = extern struct {
         self: *Self,
         textString: []const u16,
         fontFace: *IDWriteFontFace,
-        isSideways: i32,
-        isRightToLeft: i32,
+        isSideways: bool,
+        isRightToLeft: bool,
         scriptAnalysis: *const DWRITE_SCRIPT_ANALYSIS,
         localeName: ?[:0]const u16,
         numberSubstitution: ?*IDWriteNumberSubstitution,
@@ -3223,8 +3220,8 @@ pub const IDWriteTextAnalyzer = extern struct {
         glyphProps: []DWRITE_SHAPING_GLYPH_PROPERTIES,
         actualGlyphCount: *u32,
     ) i32 {
-        assert(if (features) featureRangeLengths != null else featureRangeLengths == null);
-        assert(features == null or features.len == featureRangeLengths.len);
+        assert(if (features != null) featureRangeLengths != null else featureRangeLengths == null);
+        assert(features == null or features.?.len == featureRangeLengths.?.len);
         assert(clusterMap.len == textString.len);
         assert(textProps.len == textProps.len);
         assert(glyphIndices.len == glyphProps.len);
@@ -3237,7 +3234,7 @@ pub const IDWriteTextAnalyzer = extern struct {
             @as(i32, @boolToInt(isSideways)),
             @as(i32, @boolToInt(isRightToLeft)),
             scriptAnalysis,
-            localeName.ptr,
+            if (localeName) |ln| ln.ptr else null,
             numberSubstitution,
             if (features) |f| f.ptr else null,
             if (featureRangeLengths) |f| f.ptr else null,
@@ -3257,13 +3254,13 @@ pub const IDWriteTextAnalyzer = extern struct {
         clusterMap: []const u16,
         textProps: []DWRITE_SHAPING_TEXT_PROPERTIES,
         textLength: u32,
-        glyphIndices: [*]const u16,
-        glyphProps: [*]const DWRITE_SHAPING_GLYPH_PROPERTIES,
+        glyphIndices: []const u16,
+        glyphProps: []const DWRITE_SHAPING_GLYPH_PROPERTIES,
         glyphCount: u32,
         fontFace: *IDWriteFontFace,
         fontEmSize: f32,
-        isSideways: i32,
-        isRightToLeft: i32,
+        isSideways: bool,
+        isRightToLeft: bool,
         scriptAnalysis: *const DWRITE_SCRIPT_ANALYSIS,
         localeName: ?[:0]const u16,
         features: ?[]*const DWRITE_TYPOGRAPHIC_FEATURES,
@@ -3275,8 +3272,8 @@ pub const IDWriteTextAnalyzer = extern struct {
         assert(textString.len == clusterMap.len);
         assert(textString.len == textProps.len);
         assert(glyphIndices.len == glyphProps.len);
-        assert(if (features) featureRangeLengths != null else featureRangeLengths == null);
-        assert(features == null or features.len == featureRangeLengths.len);
+        assert(if (features != null) featureRangeLengths != null else featureRangeLengths == null);
+        assert(features == null or features.?.len == featureRangeLengths.?.len);
         assert(glyphAdvances.len == glyphOffsets.len);
 
         return self.lpVtbl.*.GetGlyphPlacements(
@@ -3293,7 +3290,7 @@ pub const IDWriteTextAnalyzer = extern struct {
             @as(i32, @boolToInt(isSideways)),
             @as(i32, @boolToInt(isRightToLeft)),
             scriptAnalysis,
-            localeName.ptr,
+            if (localeName) |ln| ln.ptr else null,
             if (features) |f| f.ptr else null,
             if (featureRangeLengths) |f| f.ptr else null,
             @truncate(u32, if (features) |f| f.len else 0),
@@ -3326,8 +3323,8 @@ pub const IDWriteTextAnalyzer = extern struct {
         assert(textString.len == clusterMap.len);
         assert(textString.len == textProps.len);
         assert(glyphIndices.len == glyphProps.len);
-        assert(if (features) featureRangeLengths != null else featureRangeLengths == null);
-        assert(features == null or features.len == featureRangeLengths.len);
+        assert(if (features != null) featureRangeLengths != null else featureRangeLengths == null);
+        assert(features == null or features.?.len == featureRangeLengths.?.len);
         assert(glyphAdvances.len == glyphOffsets.len);
 
         return self.lpVtbl.*.GetGdiCompatibleGlyphPlacements(
@@ -3335,10 +3332,10 @@ pub const IDWriteTextAnalyzer = extern struct {
             textString.ptr,
             clusterMap.ptr,
             textProps.ptr,
-            @truncate(u32, textLength.len),
+            @truncate(u32, textProps.len),
             glyphIndices.ptr,
             glyphProps.ptr,
-            @truncate(u32, glyphCount.len),
+            @truncate(u32, glyphIndices.len),
             fontFace,
             fontEmSize,
             pixelsPerDip,
@@ -3347,10 +3344,10 @@ pub const IDWriteTextAnalyzer = extern struct {
             @as(i32, @boolToInt(isSideways)),
             @as(i32, @boolToInt(isRightToLeft)),
             scriptAnalysis,
-            localeName.ptr,
+            if (localeName) |ln| ln.ptr else null,
             if (features) |f| f.ptr else null,
             if (featureRangeLengths) |f| f.ptr else null,
-            if (features) |f| f.len else 0,
+            @truncate(u32, if (features) |f| f.len else 0),
             glyphAdvances.ptr,
             glyphOffsets.ptr,
         );
@@ -3455,10 +3452,10 @@ pub const IDWritePixelSnapping = extern struct {
         return @ptrCast(*IUnknown, self).Release();
     }
 
-    pub inline fn IsPixelSnappingDisabled(self: *Self, clientDrawingContext: ?*c_void, isDisabled: *i32) i32 {
-        var is_disabled: i32 = @boolToInt(isDisabled);
+    pub inline fn IsPixelSnappingDisabled(self: *Self, clientDrawingContext: ?*c_void, isDisabled: *bool) i32 {
+        var is_disabled: i32 = 0;
         const ret = self.lpVtbl.*.IsPixelSnappingDisabled(self, clientDrawingContext, &is_disabled);
-        isDisabled = is_disabled != 0;
+        isDisabled.* = is_disabled != 0;
         return ret;
     }
 
@@ -3515,11 +3512,15 @@ pub const IDWriteTextRenderer = extern struct {
         return @ptrCast(*IUnknown, self).Release();
     }
 
-    pub inline fn IsPixelSnappingDisabled(self: *Self, clientDrawingContext: ?*c_void, isDisabled: *i32) i32 {
-        var is_disabled: i32 = @boolToInt(isDisabled);
-        const ret = @ptrCast(*IDWritePixelSnapping).IsPixelSnappingDisabled(self, clientDrawingContext, &is_disabled);
-        isDisabled = is_disabled != 0;
-        return ret;
+    pub inline fn IsPixelSnappingDisabled(
+        self: *Self,
+        clientDrawingContext: ?*c_void,
+        isDisabled: *bool,
+    ) i32 {
+        return @ptrCast(*IDWritePixelSnapping, self).IsPixelSnappingDisabled(
+            clientDrawingContext,
+            isDisabled,
+        );
     }
 
     pub inline fn GetCurrentTransform(
@@ -3527,8 +3528,7 @@ pub const IDWriteTextRenderer = extern struct {
         clientDrawingContext: ?*c_void,
         transform: *DWRITE_MATRIX,
     ) i32 {
-        return @ptrCast(*IDWritePixelSnapping).GetCurrentTransform(
-            self,
+        return @ptrCast(*IDWritePixelSnapping, self).GetCurrentTransform(
             clientDrawingContext,
             transform,
         );
@@ -3539,8 +3539,7 @@ pub const IDWriteTextRenderer = extern struct {
         clientDrawingContext: ?*c_void,
         pixelsPerDip: *f32,
     ) i32 {
-        return @ptrCast(*IDWritePixelSnapping).GetPixelsPerDip(
-            self,
+        return @ptrCast(*IDWritePixelSnapping, self).GetPixelsPerDip(
             clientDrawingContext,
             pixelsPerDip,
         );
@@ -3691,27 +3690,27 @@ pub const IDWriteTextLayout = extern struct {
     }
 
     pub inline fn SetTextAlignment(self: *Self, textAlignment: DWRITE_TEXT_ALIGNMENT) i32 {
-        return @ptrCast(*IDWriteTextFormat, self).SetTextAlignment(self, textAlignment);
+        return @ptrCast(*IDWriteTextFormat, self).SetTextAlignment(textAlignment);
     }
 
     pub inline fn SetParagraphAlignment(self: *Self, paragraphAlignment: DWRITE_PARAGRAPH_ALIGNMENT) i32 {
-        return @ptrCast(*IDWriteTextFormat, self).SetParagraphAlignment(self, paragraphAlignment);
+        return @ptrCast(*IDWriteTextFormat, self).SetParagraphAlignment(paragraphAlignment);
     }
 
     pub inline fn SetWordWrapping(self: *Self, wordWrapping: DWRITE_WORD_WRAPPING) i32 {
-        return @ptrCast(*IDWriteTextFormat, self).SetWordWrapping(self, wordWrapping);
+        return @ptrCast(*IDWriteTextFormat, self).SetWordWrapping(wordWrapping);
     }
 
     pub inline fn SetReadingDirection(self: *Self, readingDirection: DWRITE_READING_DIRECTION) i32 {
-        return @ptrCast(*IDWriteTextFormat, self).SetReadingDirection(self, readingDirection);
+        return @ptrCast(*IDWriteTextFormat, self).SetReadingDirection(readingDirection);
     }
 
     pub inline fn SetFlowDirection(self: *Self, flowDirection: DWRITE_FLOW_DIRECTION) i32 {
-        return @ptrCast(*IDWriteTextFormat, self).SetFlowDirection(self, flowDirection);
+        return @ptrCast(*IDWriteTextFormat, self).SetFlowDirection(flowDirection);
     }
 
     pub inline fn SetIncrementalTabStop(self: *Self, incrementalTabStop: f32) i32 {
-        return @ptrCast(*IDWriteTextFormat, self).SetIncrementalTabStop(self, incrementalTabStop);
+        return @ptrCast(*IDWriteTextFormat, self).SetIncrementalTabStop(incrementalTabStop);
     }
 
     pub inline fn SetTrimming(
@@ -3720,7 +3719,6 @@ pub const IDWriteTextLayout = extern struct {
         trimmingSign: ?*IDWriteInlineObject,
     ) i32 {
         return @ptrCast(*IDWriteTextFormat, self).SetTrimming(
-            self,
             trimmingOptions,
             trimmingSign,
         );
@@ -3733,7 +3731,6 @@ pub const IDWriteTextLayout = extern struct {
         baseline: f32,
     ) i32 {
         return @ptrCast(*IDWriteTextFormat, self).SetLineSpacing(
-            self,
             lineSpacingMethod,
             lineSpacing,
             baseline,
@@ -3741,27 +3738,27 @@ pub const IDWriteTextLayout = extern struct {
     }
 
     pub inline fn GetTextAlignment(self: *Self) DWRITE_TEXT_ALIGNMENT {
-        return @ptrCast(*IDWriteTextFormat, self).GetTextAlignment(self);
+        return @ptrCast(*IDWriteTextFormat, self).GetTextAlignment();
     }
 
     pub inline fn GetParagraphAlignment(self: *Self) DWRITE_PARAGRAPH_ALIGNMENT {
-        return @ptrCast(*IDWriteTextFormat, self).GetParagraphAlignment(self);
+        return @ptrCast(*IDWriteTextFormat, self).GetParagraphAlignment();
     }
 
     pub inline fn GetWordWrapping(self: *Self) DWRITE_WORD_WRAPPING {
-        return @ptrCast(*IDWriteTextFormat, self).GetWordWrapping(self);
+        return @ptrCast(*IDWriteTextFormat, self).GetWordWrapping();
     }
 
     pub inline fn GetReadingDirection(self: *Self) DWRITE_READING_DIRECTION {
-        return @ptrCast(*IDWriteTextFormat, self).GetReadingDirection(self);
+        return @ptrCast(*IDWriteTextFormat, self).GetReadingDirection();
     }
 
     pub inline fn GetFlowDirection(self: *Self) DWRITE_FLOW_DIRECTION {
-        return @ptrCast(*IDWriteTextFormat, self).GetFlowDirection(self);
+        return @ptrCast(*IDWriteTextFormat, self).GetFlowDirection();
     }
 
     pub inline fn GetIncrementalTabStop(self: *Self) f32 {
-        return @ptrCast(*IDWriteTextFormat, self).GetIncrementalTabStop(self);
+        return @ptrCast(*IDWriteTextFormat, self).GetIncrementalTabStop();
     }
 
     pub inline fn GetTrimming(
@@ -3770,7 +3767,6 @@ pub const IDWriteTextLayout = extern struct {
         trimmingSign: *?*IDWriteInlineObject,
     ) i32 {
         return @ptrCast(*IDWriteTextFormat, self).GetTrimming(
-            self,
             trimmingOptions,
             trimmingSign,
         );
@@ -3783,7 +3779,6 @@ pub const IDWriteTextLayout = extern struct {
         baseline: *f32,
     ) i32 {
         return @ptrCast(*IDWriteTextFormat, self).GetLineSpacing(
-            self,
             lineSpacingMethod,
             lineSpacing,
             baseline,
@@ -3791,46 +3786,42 @@ pub const IDWriteTextLayout = extern struct {
     }
 
     pub inline fn GetFontCollection(self: *Self, fontCollection: *?*IDWriteFontCollection) i32 {
-        return @ptrCast(*IDWriteTextFormat, self).GetFontCollection(self, fontCollection);
+        return @ptrCast(*IDWriteTextFormat, self).GetFontCollection(fontCollection);
     }
 
     pub inline fn GetFontFamilyNameLength(self: *Self) u32 {
-        return @ptrCast(*IDWriteTextFormat, self).GetFontFamilyNameLength(self);
+        return @ptrCast(*IDWriteTextFormat, self).GetFontFamilyNameLength();
     }
 
     pub inline fn GetFontFamilyName(
         self: *Self,
         fontFamilyName: [:0]u16,
     ) i32 {
-        return @ptrCast(*IDWriteTextFormat, self).GetFontFamilyName(
-            self,
-            fontFamilyName.ptr,
-            @truncate(u32, fontFamilyName.len),
-        );
+        return @ptrCast(*IDWriteTextFormat, self).GetFontFamilyName(fontFamilyName);
     }
 
     pub inline fn GetFontWeight(self: *Self) DWRITE_FONT_WEIGHT {
-        return @ptrCast(*IDWriteTextFormat, self).GetFontWeight(self);
+        return @ptrCast(*IDWriteTextFormat, self).GetFontWeight();
     }
 
     pub inline fn GetFontStyle(self: *Self) DWRITE_FONT_STYLE {
-        return @ptrCast(*IDWriteTextFormat, self).GetFontStyle(self);
+        return @ptrCast(*IDWriteTextFormat, self).GetFontStyle();
     }
 
     pub inline fn GetFontStretch(self: *Self) DWRITE_FONT_STRETCH {
-        return @ptrCast(*IDWriteTextFormat, self).GetFontStretch(self);
+        return @ptrCast(*IDWriteTextFormat, self).GetFontStretch();
     }
 
     pub inline fn GetFontSize(self: *Self) f32 {
-        return @ptrCast(*IDWriteTextFormat, self).GetFontSize(self);
+        return @ptrCast(*IDWriteTextFormat, self).GetFontSize();
     }
 
     pub inline fn GetLocaleNameLength(self: *Self) u32 {
-        return @ptrCast(*IDWriteTextFormat, self).GetLocaleNameLength(self);
+        return @ptrCast(*IDWriteTextFormat, self).GetLocaleNameLength();
     }
 
     pub inline fn GetLocaleName(self: *Self, localeName: [:0]u16) i32 {
-        return @ptrCast(*IDWriteTextFormat, self).GetLocaleName(self, localeName.ptr, @trucate(u32, localeName.len));
+        return @ptrCast(*IDWriteTextFormat, self).GetLocaleName(localeName);
     }
 
     pub inline fn SetMaxWidth(self: *Self, maxWidth: f32) i32 {
@@ -4098,14 +4089,14 @@ pub const IDWriteTextLayout = extern struct {
         hasUnderline: *bool,
         textRange: ?*DWRITE_TEXT_RANGE,
     ) i32 {
-        var has_underline = @boolToInt(hasUnderline);
+        var has_underline: i32 = 0;
         const ret = self.lpVtbl.*.GetUnderline(
             self,
             currentPosition,
-            &has_nderline,
+            &has_underline,
             textRange,
         );
-        hasUnderline = has_underline != 0;
+        hasUnderline.* = has_underline != 0;
         return ret;
     }
 
@@ -4115,14 +4106,14 @@ pub const IDWriteTextLayout = extern struct {
         hasStrikethrough: *bool,
         textRange: ?*DWRITE_TEXT_RANGE,
     ) i32 {
-        var has_strikethrough = @boolToInt(hasStrikethrough);
+        var has_strikethrough: i32 = 0;
         const ret = self.lpVtbl.*.GetStrikethrough(
             self,
             currentPosition,
             &has_strikethrough,
             textRange,
         );
-        hasStrikethrough = has_strikethrough != 0;
+        hasStrikethrough.* = has_strikethrough != 0;
         return ret;
     }
 
@@ -4277,8 +4268,8 @@ pub const IDWriteTextLayout = extern struct {
         isInside: *bool,
         hitTestMetrics: *DWRITE_HIT_TEST_METRICS,
     ) i32 {
-        var is_trailing_hit = @boolToInt(is_trailing_hit);
-        var is_inside = @boolToInt(is_inside);
+        var is_trailing_hit: i32 = 0;
+        var is_inside: i32 = 0;
         const ret = self.lpVtbl.*.HitTestPoint(
             self,
             pointX,
@@ -4287,8 +4278,8 @@ pub const IDWriteTextLayout = extern struct {
             &is_inside,
             hitTestMetrics,
         );
-        isTrailingHit = is_trailing_hit != 0;
-        isInside = is_inside != 0;
+        isTrailingHit.* = is_trailing_hit != 0;
+        isInside.* = is_inside != 0;
         return ret;
     }
 
@@ -4325,8 +4316,8 @@ pub const IDWriteTextLayout = extern struct {
             textLength,
             originX,
             originY,
-            hitTestMetrics.ptr,
-            @truncate(u32, hitTestMetrics.len),
+            if (hitTestMetrics) |h| h.ptr else null,
+            @truncate(u32, if (hitTestMetrics) |h| h.len else 0),
             actualHitTestMetricsCount,
         );
     }
@@ -4462,14 +4453,14 @@ pub const IDWriteGdiInterop = extern struct {
         logFont: *LOGFONTW,
         isSystemFont: *bool,
     ) i32 {
-        var is_system_font = @boolToInt(isSystemFont);
+        var is_system_font:i32 = 0;
         const ret = self.lpVtbl.*.ConvertFontToLOGFONT(
             self,
             font,
             logFont,
             &is_system_font,
         );
-        isSystemFont = is_system_font != 0;
+        isSystemFont.* = is_system_font != 0;
         return ret;
     }
 
@@ -4564,7 +4555,7 @@ pub const IDWriteGlyphRunAnalysis = extern struct {
             textureType,
             textureBounds,
             alphaValues.ptr,
-            @truncate(u32, alphaValues),
+            @truncate(u32, alphaValues.len),
         );
     }
 
@@ -4592,9 +4583,9 @@ pub inline fn DWRITE_MAKE_OPENTYPE_TAG(a: u8, b: u8, c: u8, d: u8) u32 {
 }
 
 pub inline fn MAKE_DWRITE_HR(severity: u2, code: u16) i32 {
-    return MAKE_HRESULT(severity, FACILITY_DWRITE, DWRITE_ERR_BASE + code);
+    return winerror.MAKE_HRESULT(severity, FACILITY_DWRITE, DWRITE_ERR_BASE + code);
 }
 
 pub inline fn MAKE_DWRITE_HR_ERR(code: u16) i32 {
-    return MAKE_DWRITE_HR(SEVERITY_ERROR, code);
+    return MAKE_DWRITE_HR(winerror.SEVERITY_ERROR, code);
 }

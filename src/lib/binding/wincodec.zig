@@ -4,7 +4,7 @@ const util = @import("../util.zig");
 
 const Interface = util.Interface;
 const GUID = structs.GUID;
-const IUnknownVtbl = unknwn.IUnknownVtbl;
+const IUnknown = unknwn.IUnknown;
 
 pub const IID_IWICBitmap = GUID_STRING("00000121-a8f2-4877-ba0a-fd2b6645fb94");
 pub const IWICBitmap = Interface(IWICBitmapVtbl);
@@ -26,7 +26,7 @@ pub const IWICBitmapSourceVtbl = extern struct {
     const Self = IWICBitmapSource;
 
     // IUnknown
-    iunknown: IUnknownVtbl,
+    iunknown: IUnknown.Vtbl,
 
     // IWICBitmapSource
     GetSize: fn (this: *Self, puiWidth: *c_uint, puiHeight: c_uint) callconv(.Stdcall) c_long,
@@ -42,7 +42,7 @@ pub const IWICPaletteVtbl = extern struct {
     const Self = IWICPalette;
 
     // IUnknown
-    iunknown: IUnknownVtbl,
+    iunknown: IUnknown.Vtbl,
 
     // IWICPalette
     InitializePredefined: fn (this: *Self, ePaletteType: WICBitmapPaletteType, fAddTransparentColor: c_int) callconv(.Stdcall) c_long,
@@ -63,7 +63,7 @@ pub const IWICBitmapLockVtbl = extern struct {
     const Self = IWICBitmapLock;
 
     // IUnknown
-    IUnknown: IUnknownVtbl,
+    IUnknown: IUnknown.Vtbl,
 
     // IWICBitmapLock
     GetSize: fn (this: *Self, puiWidth: *c_uint, puiHeight: *c_uint) callconv(.Stdcall) c_long,

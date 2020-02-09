@@ -9202,33 +9202,6 @@ pub const E_FAIL = 0x80004005;
 // General access denied error
 pub const E_ACCESSDENIED = 0x80070005;
 
-// Not implemented
-pub const E_NOTIMPL = 0x80000001;
-
-// Ran out of memory
-pub const E_OUTOFMEMORY = 0x80000002;
-
-// One or more arguments are invalid
-pub const E_INVALIDARG = 0x80000003;
-
-// No such interface supported
-pub const E_NOINTERFACE = 0x80000004;
-
-// Invalid pointer
-pub const E_POINTER = 0x80000005;
-
-// Invalid handle
-pub const E_HANDLE = 0x80000006;
-
-// Operation aborted
-pub const E_ABORT = 0x80000007;
-
-// Unspecified error
-pub const E_FAIL = 0x80000008;
-
-// General access denied error
-pub const E_ACCESSDENIED = 0x80000009;
-
 // The data necessary to complete this operation is not yet available.
 pub const E_PENDING = 0x8000000A;
 
@@ -19414,7 +19387,7 @@ pub inline fn IS_ERROR(status: u32) bool {
 
 pub inline fn HRESULT_FROM_WIN32(x: i32) i32 {
     return if (x <= 0)
-        x;
+        x
     else
         @bitCast(i32, @bitCast(u32, x & 0x0000FFFF) | (FACILITY_WIN32 << 16) | 0x80000000);
 }
@@ -19444,7 +19417,7 @@ pub inline fn HRESULT_FROM_SETUPAPI(x: i32) i32 {
     const mask = APPLICATION_ERROR_MASK|ERROR_SEVERITY_ERROR;
     
     return if (x & mask == mask)
-        @bitCast(i32, (@bitCast(u32, x) & 0x0000FFFF) | (FACILITY_SETUPAPI << 16) | 0x80000000);
+        @bitCast(i32, (@bitCast(u32, x) & 0x0000FFFF) | (FACILITY_SETUPAPI << 16) | 0x80000000)
     else
         HRESULT_FROM_WIN32(x);
 }
