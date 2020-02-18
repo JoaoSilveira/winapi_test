@@ -1841,3 +1841,94 @@ pub const LF_FACESIZE = 32;
 pub const LF_FULLFACESIZE = 64;
 
 pub const LOCALE_NAME_MAX_LENGTH = 85;
+
+pub const GWL_WNDPROC = -4;
+pub const GWL_HINSTANCE = -6;
+pub const GWL_HWNDPARENT = -8;
+pub const GWL_STYLE = -16;
+pub const GWL_EXSTYLE = -20;
+pub const GWL_USERDATA = -21;
+pub const GWL_ID = -12;
+
+pub const GWLP_WNDPROC = -4;
+pub const GWLP_HINSTANCE = -6;
+pub const GWLP_HWNDPARENT = -8;
+pub const GWLP_USERDATA = -21;
+pub const GWLP_ID = -12;
+
+pub const GCL_MENUNAME = -8;
+pub const GCL_HBRBACKGROUND = -10;
+pub const GCL_HCURSOR = -12;
+pub const GCL_HICON = -14;
+pub const GCL_HMODULE = -16;
+pub const GCL_CBWNDEXTRA = -18;
+pub const GCL_CBCLSEXTRA = -20;
+pub const GCL_WNDPROC = -24;
+pub const GCL_STYLE = -26;
+pub const GCW_ATOM = -32;
+pub const GCL_HICONSM = -34;
+
+pub const GCLP_MENUNAME = -8;
+pub const GCLP_HBRBACKGROUND = -10;
+pub const GCLP_HCURSOR = -12;
+pub const GCLP_HICON = -14;
+pub const GCLP_HMODULE = -16;
+pub const GCLP_WNDPROC = -24;
+pub const GCLP_HICONSM = -34;
+
+pub const MB_OK = 0x00000000;
+pub const MB_OKCANCEL = 0x00000001;
+pub const MB_ABORTRETRYIGNORE = 0x00000002;
+pub const MB_YESNOCANCEL = 0x00000003;
+pub const MB_YESNO = 0x00000004;
+pub const MB_RETRYCANCEL = 0x00000005;
+pub const MB_CANCELTRYCONTINUE = 0x00000006;
+
+pub const MB_ICONHAND = 0x00000010;
+pub const MB_ICONQUESTION = 0x00000020;
+pub const MB_ICONEXCLAMATION = 0x00000030;
+pub const MB_ICONASTERISK = 0x00000040;
+pub const MB_USERICON = 0x00000080;
+pub const MB_ICONWARNING = MB_ICONEXCLAMATION;
+pub const MB_ICONERROR = MB_ICONHAND;
+pub const MB_ICONINFORMATION = MB_ICONASTERISK;
+pub const MB_ICONSTOP = MB_ICONHAND;
+
+pub const MB_DEFBUTTON1 = 0x00000000;
+pub const MB_DEFBUTTON2 = 0x00000100;
+pub const MB_DEFBUTTON3 = 0x00000200;
+pub const MB_DEFBUTTON4 = 0x00000300;
+
+pub const MB_APPLMODAL = 0x00000000;
+pub const MB_SYSTEMMODAL = 0x00001000;
+pub const MB_TASKMODAL = 0x00002000;
+
+pub const MB_NOFOCUS = 0x00008000;
+pub const MB_SETFOREGROUND = 0x00010000;
+pub const MB_DEFAULT_DESKTOP_ONLY = 0x00020000;
+
+pub const MB_TOPMOST = 0x00040000;
+pub const MB_RIGHT = 0x00080000;
+pub const MB_RTLREADING = 0x00100000;
+
+pub const MB_SERVICE_NOTIFICATION = 0x00200000;
+pub const MB_SERVICE_NOTIFICATION_NT3X = 0x00040000;
+
+pub const MB_TYPEMASK = 0x0000000F;
+pub const MB_ICONMASK = 0x000000F0;
+pub const MB_DEFMASK = 0x00000F00;
+pub const MB_MODEMASK = 0x00003000;
+pub const MB_MISCMASK = 0x0000C000;
+
+pub const IDOK = 1;
+pub const IDCANCEL = 2;
+pub const IDABORT = 3;
+pub const IDRETRY = 4;
+pub const IDIGNORE = 5;
+pub const IDYES = 6;
+pub const IDNO = 7;
+pub const IDCLOSE = 8;
+pub const IDHELP = 9;
+pub const IDTRYAGAIN = 10;
+pub const IDCONTINUE = 11;
+pub const IDTIMEOUT = 32000;

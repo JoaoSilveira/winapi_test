@@ -13,7 +13,7 @@ const warn = std.debug.warn;
 
 var alloc: *std.mem.Allocator = undefined;
 
-pub fn listSystemFonts(hInstance: ?*c_void) c_uint {
+pub fn listSystemFonts(hInstance: ?*c_void) u32 {
     var factory: *IDWriteFactory = undefined;
     var heap = std.heap.HeapAllocator.init();
     defer heap.deinit();
@@ -35,7 +35,7 @@ pub fn listSystemFonts(hInstance: ?*c_void) c_uint {
     while (i < family_count) : (i += 1) {
         var font_family: *IDWriteFontFamily = undefined;
 
-        if (fonts.GetFontFamily(@truncate(c_uint, i), @ptrCast(*?*IDWriteFontFamily, &font_family)) < 0)
+        if (fonts.GetFontFamily(@truncate(u32, i), @ptrCast(*?*IDWriteFontFamily, &font_family)) < 0)
             continue;
         defer _ = font_family.Release();
 
@@ -49,14 +49,18 @@ pub fn listSystemFonts(hInstance: ?*c_void) c_uint {
         var index: u32 = 0;
         var exists = false;
 
-        var default_locale_success = GetUserDefaultLocaleName(&locale_name, LOCALE_NAME_MAX_LENGTH);
+        var default_locale_success = @intCast(u32, GetUserDefaultLocaleName(&locale_name, LOCALE_NAME_MAX_LENGTH));
 
         if (default_locale_success != 0) {
-            if (family_names.FindLocaleName(@ptrCast([:0]u16, locale_name[0..:0]), &index, &exists) < 0)
+            if (family_names.FindLocaleName(
+                locale_name[0..default_locale_success - 1 :0],
+                &index,
+                &exists,
+            ) < 0)
                 continue;
         }
 
-        if (exists) {
+        if (!exists) {
             var locale = STW(alloc, "en-us");
             defer alloc.free(locale);
 
@@ -64,7 +68,7 @@ pub fn listSystemFonts(hInstance: ?*c_void) c_uint {
                 continue;
         }
 
-        if (exists)
+        if (!exists)
             index = 0;
 
         var length: u32 = 0;
@@ -78,14 +82,14 @@ pub fn listSystemFonts(hInstance: ?*c_void) c_uint {
         if (family_names.GetString(index, name) < 0)
             continue;
 
-        warn("{}\n", .{WTS(alloc, @ptrCast([*:0]const u16, name.ptr)[0..length :0])});
+        warn("{}\n", .{WTS(alloc, name)});
     }
 
     return 0;
 }
 
 //https://docs.microsoft.com/en-gb/windows/win32/directwrite/getting-started-with-directwrite#drawing-simple-text
-pub fn drawingSimpleText(hInstance: ?*c_void) c_uint {
+pub fn drawingSimpleText(hInstance: ?*c_void) u32 {
     var heap = std.heap.HeapAllocator.init();
     defer heap.deinit();
     alloc = &heap.allocator;
@@ -162,7 +166,7 @@ pub fn drawingSimpleText(hInstance: ?*c_void) c_uint {
         _ = DispatchMessageW(&msg);
     }
 
-    return @truncate(c_uint, msg.wParam);
+    return @truncate(u32, msg.wParam);
 }
 
 const Params = struct {
@@ -177,7 +181,11 @@ const Params = struct {
 };
 
 var par: Params = undefined;
-fn simpleTextProc(hwnd: ?*c_void, msg: c_uint, wparam: usize, lparam: isize) callconv(.Stdcall) isize {
+fn simpleTextProc(hwnd: ?*c_void, msg: u32, wparam: usize, lparam: isize) callconv(.Stdcall) isize {
+    if (hwnd == null) {
+        std.debug.warn("{} {} {}\n", .{ msg, wparam, lparam });
+        std.debug.warn("{X} {X} {X}\n", .{ msg, wparam, lparam });
+    }
     switch (msg) {
         WM_CREATE => {
             const fac_opt = D2D1_FACTORY_OPTIONS{
@@ -235,8 +243,8 @@ fn simpleTextProc(hwnd: ?*c_void, msg: c_uint, wparam: usize, lparam: isize) cal
             const hwnd_prop = D2D1_HWND_RENDER_TARGET_PROPERTIES{
                 .hwnd = hwnd,
                 .pixelSize = .{
-                    .width = @intCast(c_uint, rc.right - rc.left),
-                    .height = @intCast(c_uint, rc.bottom - rc.top),
+                    .width = @intCast(u32, rc.right - rc.left),
+                    .height = @intCast(u32, rc.bottom - rc.top),
                 },
                 .presentOptions = D2D1_PRESENT_OPTIONS.NONE,
             };

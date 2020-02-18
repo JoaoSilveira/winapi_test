@@ -1,10 +1,10 @@
 usingnamespace @import("constants.zig");
 
 pub const WNDCLASSW = extern struct {
-    style: c_uint,
-    lpfnWndProc: fn (?*c_void, c_uint, usize, isize) callconv(.Stdcall) isize,
-    cbClsExtra: c_int,
-    cbWndExtra: c_int,
+    style: u32,
+    lpfnWndProc: fn (?*c_void, u32, usize, isize) callconv(.Stdcall) isize,
+    cbClsExtra: i32,
+    cbWndExtra: i32,
     hInstance: ?*c_void,
     hIcon: ?*c_void,
     hCursor: ?*c_void,
@@ -14,11 +14,11 @@ pub const WNDCLASSW = extern struct {
 };
 
 pub const WNDCLASSEXW = extern struct {
-    cbSize: c_uint = @sizeOf(WNDCLASSEXW),
-    style: c_uint,
-    lpfnWndProc: fn (?*c_void, c_uint, usize, isize) callconv(.Stdcall) isize,
-    cbClsExtra: c_int,
-    cbWndExtra: c_int,
+    cbSize: u32 = @sizeOf(WNDCLASSEXW),
+    style: u32,
+    lpfnWndProc: fn (?*c_void, u32, usize, isize) callconv(.Stdcall) isize,
+    cbClsExtra: i32,
+    cbWndExtra: i32,
     hInstance: ?*c_void,
     hIcon: ?*c_void,
     hCursor: ?*c_void,
@@ -30,7 +30,7 @@ pub const WNDCLASSEXW = extern struct {
 
 pub const MSG = extern struct {
     hwnd: ?*c_void,
-    message: c_uint,
+    message: u32,
     wParam: usize,
     lParam: isize,
     time: u32,
@@ -38,37 +38,37 @@ pub const MSG = extern struct {
 };
 
 pub const POINT = extern struct {
-    x: c_int,
-    y: c_int,
+    x: i32,
+    y: i32,
 };
 
 pub const PAINTSTRUCT = extern struct {
     hdc: ?*c_void,
-    fErase: c_int,
+    fErase: i32,
     rcPaint: RECT,
-    fRestore: c_int,
-    fIncUpdate: c_int,
+    fRestore: i32,
+    fIncUpdate: i32,
     rgbReserved: [32]u8,
 };
 
 pub const RECT = extern struct {
-    left: c_long,
-    top: c_long,
-    right: c_long,
-    bottom: c_long,
+    left: i32,
+    top: i32,
+    right: i32,
+    bottom: i32,
 };
 
 pub const INITCOMMONCONTROLSEX = extern struct {
-    dwSize: c_uint = @sizeOf(INITCOMMONCONTROLSEX),
-    dwICC: c_uint,
+    dwSize: u32 = @sizeOf(INITCOMMONCONTROLSEX),
+    dwICC: u32,
 };
 
 pub const DLLVERSIONINFO = extern struct {
-    cbSize: c_uint = @sizeOf(DLLVERSIONINFO),
-    dwMajorVersion: c_uint,
-    dwMinorVersion: c_uint,
-    dwBuildNumber: c_uint,
-    dwPlatformID: c_uint,
+    cbSize: u32 = @sizeOf(DLLVERSIONINFO),
+    dwMajorVersion: u32,
+    dwMinorVersion: u32,
+    dwBuildNumber: u32,
+    dwPlatformID: u32,
 };
 
 pub const CREATESTRUCTW = extern struct {
@@ -76,47 +76,47 @@ pub const CREATESTRUCTW = extern struct {
     hInstance: ?*c_void,
     hMenu: ?*c_void,
     hwndParent: ?*c_void,
-    cy: c_int,
-    cx: c_int,
-    y: c_int,
-    x: c_int,
-    style: c_long,
+    cy: i32,
+    cx: i32,
+    y: i32,
+    x: i32,
+    style: i32,
     lpszName: [*:0]const u16,
     lpszClass: [*:0]const u16,
-    dwExStyle: c_uint,
+    dwExStyle: u32,
 };
 
 pub const NMHDR = extern struct {
     hwndFrom: ?*c_void,
     idFrom: usize,
-    code: c_uint,
+    code: u32,
 };
 
 pub const NONCLIENTMETRICSW = extern struct {
-    cbSize: c_uint = @sizeOf(NONCLIENTMETRICSW),
-    iBorderWidth: c_int,
-    iScrollWidth: c_int,
-    iScrollHeight: c_int,
-    iCaptionWidth: c_int,
-    iCaptionHeight: c_int,
+    cbSize: u32 = @sizeOf(NONCLIENTMETRICSW),
+    iBorderWidth: i32,
+    iScrollWidth: i32,
+    iScrollHeight: i32,
+    iCaptionWidth: i32,
+    iCaptionHeight: i32,
     lfCaptionFont: LOGFONTW,
-    iSmCaptionWidth: c_int,
-    iSmCaptionHeight: c_int,
+    iSmCaptionWidth: i32,
+    iSmCaptionHeight: i32,
     lfSmCaptionFont: LOGFONTW,
-    iMenuWidth: c_int,
-    iMenuHeight: c_int,
+    iMenuWidth: i32,
+    iMenuHeight: i32,
     lfMenuFont: LOGFONTW,
     lfStatusFont: LOGFONTW,
     lfMessageFont: LOGFONTW,
-    iPaddedBorderWidth: c_int,
+    iPaddedBorderWidth: i32,
 };
 
 pub const LOGFONTW = extern struct {
-    lfHeight: c_long,
-    lfWidth: c_long,
-    lfEscapement: c_long,
-    lfOrientation: c_long,
-    lfWeight: c_long,
+    lfHeight: i32,
+    lfWidth: i32,
+    lfEscapement: i32,
+    lfOrientation: i32,
+    lfWeight: i32,
     lfItalic: u8,
     lfUnderline: u8,
     lfStrikeOut: u8,
@@ -129,18 +129,18 @@ pub const LOGFONTW = extern struct {
 };
 
 pub const GUID = extern struct {
-    Data1: c_ulong,
-    Data2: c_ushort,
-    Data3: c_ushort,
+    Data1: u32,
+    Data2: u16,
+    Data3: u16,
     Data4: [8]u8,
 };
 
 pub const FILETIME = extern struct {
-    dwLowDateTime: c_ulong,
-    dwHighDateTime: c_ulong,
+    dwLowDateTime: u32,
+    dwHighDateTime: u32,
 };
 
 pub const SIZE = extern struct {
-    cx: c_long,
-    cy: c_long,
+    cx: i32,
+    cy: i32,
 };

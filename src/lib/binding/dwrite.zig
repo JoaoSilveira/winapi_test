@@ -1724,7 +1724,7 @@ pub const IDWriteLocalFontFileLoader = extern struct {
             fontFileReferenceKey,
             fontFileReferenceKeySize,
             filePath.ptr,
-            @truncate(u32, filePath.len),
+            @truncate(u32, filePath.len + 1),
         );
     }
 
@@ -2324,7 +2324,7 @@ pub const IDWriteLocalizedStrings = extern struct {
             self,
             index,
             localeName.ptr,
-            @truncate(u32, localeName.len),
+            @truncate(u32, localeName.len + 1),
         );
     }
 
@@ -2349,7 +2349,7 @@ pub const IDWriteLocalizedStrings = extern struct {
             self,
             index,
             stringBuffer.ptr,
-            @truncate(u32, stringBuffer.len),
+            @truncate(u32, stringBuffer.len + 1),
         );
     }
 };
@@ -2829,7 +2829,7 @@ pub const IDWriteTextFormat = extern struct {
         return self.lpVtbl.*.GetFontFamilyName(
             self,
             fontFamilyName.ptr,
-            @truncate(u32, fontFamilyName.len),
+            @truncate(u32, fontFamilyName.len + 1),
         );
     }
 
@@ -2854,7 +2854,7 @@ pub const IDWriteTextFormat = extern struct {
     }
 
     pub inline fn GetLocaleName(self: *Self, localeName: [:0]u16) i32 {
-        return self.lpVtbl.*.GetLocaleName(self, localeName.ptr, @truncate(u32, localeName.len));
+        return self.lpVtbl.*.GetLocaleName(self, localeName.ptr, @truncate(u32, localeName.len + 1));
     }
 };
 
@@ -4022,7 +4022,7 @@ pub const IDWriteTextLayout = extern struct {
             self,
             currentPosition,
             fontFamilyName.ptr,
-            @truncate(u32, fontFamilyName.len),
+            @truncate(u32, fontFamilyName.len + 1),
             textRange,
         );
     }
@@ -4183,7 +4183,7 @@ pub const IDWriteTextLayout = extern struct {
             self,
             currentPosition,
             localeName.ptr,
-            @truncate(u32, localeName.len),
+            @truncate(u32, localeName.len + 1),
             textRange,
         );
     }
