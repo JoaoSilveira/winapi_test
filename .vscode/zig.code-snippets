@@ -8,13 +8,13 @@
 			"    pub const IID = GUID_STRING($2);",
 			"    pub const Vtbl = extern struct {",
 			"        // ${3:IUnknown}",
-			"        $3: $3.Vtbl,",
+			"        parent: $3.Vtbl,",
 			"",
 			"        // $1",
 			"        $0",
 			"    };",
 			"",
-			"    lpVtbl: *Vtbl",
+			"    lpVtbl: *Vtbl,",
 			"",
 			"};",
 		],
@@ -24,7 +24,15 @@
 		"scope": "zig",
 		"prefix": "comfn",
 		"body": [
-			"$1: fn (this: *Self${3:, }) callconv(.Stdcall) ${2:c_long},$0"
+			"$1: fn (self: *Self${3:, }) callconv(.Stdcall) ${2:i32},$0"
+		],
+		"description": "Adds a new function to the existing vtable"
+	},
+	"Convert bool to i32": {
+		"scope": "zig",
+		"prefix": "bln",
+		"body": [
+			"@as(i32, @boolToInt(${1:$TM_SELECTED_TEXT}))"
 		],
 		"description": "Adds a new function to the existing vtable"
 	}

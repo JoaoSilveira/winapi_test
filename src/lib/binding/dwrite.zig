@@ -1269,7 +1269,7 @@ pub const IDWriteFactory = extern struct {
     pub const Vtbl = extern struct {
 
         // IUnknown
-        iunknown: IUnknown.Vtbl,
+        parent: IUnknown.Vtbl,
 
         // IDWriteFactory
         GetSystemFontCollection: fn (self: *Self, fontCollection: *?*IDWriteFontCollection, checkForUpdates: i32) callconv(.Stdcall) i32,
@@ -1624,7 +1624,7 @@ pub const IDWriteFontFileLoader = extern struct {
     pub const IID = GUID_STRING("727cad4e-d6af-4c9e-8a08-d695b11caa49");
     pub const Vtbl = extern struct {
         // IUnknown
-        iunknown: IUnknown.Vtbl,
+        parent: IUnknown.Vtbl,
 
         // IDWriteFontFileLoader
         CreateStreamFromKey: fn (self: *Self, fontFileReferenceKey: *const c_void, fontFileReferenceKeySize: u32, fontFileStream: *?*IDWriteFontFileStream) callconv(.Stdcall) i32,
@@ -1664,7 +1664,7 @@ pub const IDWriteLocalFontFileLoader = extern struct {
     pub const IID = GUID_STRING("b2d9f3ec-c9fe-4a11-a2ec-d86208f7c0a2");
     pub const Vtbl = extern struct {
         // IDWriteFontFileLoader
-        idwritefontfileloader: IDWriteFontFileLoader.Vtbl,
+        parent: IDWriteFontFileLoader.Vtbl,
 
         // IDWriteLocalFontFileLoader
         GetFilePathLengthFromKey: fn (self: *Self, fontFileReferenceKey: *const c_void, fontFileReferenceKeySize: u32, filePathLength: *u32) callconv(.Stdcall) i32,
@@ -1748,7 +1748,7 @@ pub const IDWriteFontFileStream = extern struct {
     pub const IID = GUID_STRING("6d4865fe-0ab8-4d91-8f62-5dd6be34a3e0");
     pub const Vtbl = extern struct {
         // IUnknown
-        iunknown: IUnknown.Vtbl,
+        parent: IUnknown.Vtbl,
 
         // IDWriteFontFileStream
         ReadFileFragment: fn (self: *Self, fragmentStart: *?*const c_void, fileOffset: u64, fragmentSize: u64, fragmentContext: *?*c_void) callconv(.Stdcall) c_ulong,
@@ -1823,7 +1823,7 @@ pub const IDWriteFontFile = extern struct {
     pub const IID = GUID_STRING("739d886a-cef5-47dc-8769-1a8b41bebbb0");
     pub const Vtbl = extern struct {
         // IUnknown
-        iunknown: IUnknown.Vtbl,
+        parent: IUnknown.Vtbl,
 
         // IDWriteFontFile
         GetReferenceKey: fn (self: *Self, fontFileReferenceKey: *?*const c_void, fontFileReferenceKeySize: *u32) callconv(.Stdcall) c_ulong,
@@ -1894,7 +1894,7 @@ pub const IDWriteRenderingParams = extern struct {
     pub const IID = GUID_STRING("2f0da53a-2add-47cd-82ee-d9ec34688e75");
     pub const Vtbl = extern struct {
         // IUnknown
-        iunknown: IUnknown.Vtbl,
+        parent: IUnknown.Vtbl,
 
         // IDWriteRenderingParams
         GetGamma: fn (self: *Self) callconv(.Stdcall) f32,
@@ -1942,9 +1942,9 @@ pub const IDWriteRenderingParams = extern struct {
 pub const IDWriteFontFace = extern struct {
     const Self = @This();
     const IID = GUID_STRING("5f49804d-7024-4d43-bfa9-d25984f53849");
-    const Vtbl = extern struct {
+    pub const Vtbl = extern struct {
         // IUnknown
-        iunknown: IUnknown.Vtbl,
+        parent: IUnknown.Vtbl,
 
         // IDWriteRenderingParams
         GetType: fn (self: *Self) callconv(.Stdcall) DWRITE_FONT_FACE_TYPE,
@@ -2088,8 +2088,8 @@ pub const IDWriteFontFace = extern struct {
             self,
             emSize,
             glyphIndices.ptr,
-            glyphAdvances.?.ptr,
-            glyphOffsets.?.ptr,
+            if (glyphAdvances) |payload| payload.ptr else null,
+            if (glyphOffsets) |payload| payload.ptr else null,
             @truncate(u32, glyphIndices.len),
             @as(i32, @boolToInt(isSideways)),
             @as(i32, @boolToInt(isRightToLeft)),
@@ -2162,7 +2162,7 @@ pub const IDWriteFontCollectionLoader = extern struct {
     pub const IID = GUID_STRING("cca920e4-52f0-492b-bfa8-29c72ee0a468");
     pub const Vtbl = extern struct {
         // IUnknown
-        iunknown: IUnknown.Vtbl,
+        parent: IUnknown.Vtbl,
 
         // IDWriteFontCollectionLoader
         CreateEnumeratorFromKey: fn (self: *Self, factory: *IDWriteFactory, collectionKey: *const c_void, collectionKeySize: u32, fontFileEnumerator: *?*IDWriteFontFileEnumerator) callconv(.Stdcall) i32,
@@ -2204,7 +2204,7 @@ pub const IDWriteFontFileEnumerator = extern struct {
     pub const IID = GUID_STRING("72755049-5ff7-435d-8348-4be97cfa6c7c");
     pub const Vtbl = extern struct {
         // IUnknown
-        iunknown: IUnknown.Vtbl,
+        parent: IUnknown.Vtbl,
 
         // IDWriteFontFileEnumerator
         MoveNext: fn (self: *Self, hasCurrentFile: *i32) callconv(.Stdcall) i32,
@@ -2256,7 +2256,7 @@ pub const IDWriteLocalizedStrings = extern struct {
     pub const IID = GUID_STRING("08256209-099a-4b34-b86d-c22b110e7771");
     pub const Vtbl = extern struct {
         // IUnknown
-        iunknown: IUnknown.Vtbl,
+        parent: IUnknown.Vtbl,
 
         // IDWriteLocalizedStrings
         GetCount: fn (self: *Self) callconv(.Stdcall) u32,
@@ -2359,7 +2359,7 @@ pub const IDWriteFontCollection = extern struct {
     pub const IID = GUID_STRING("a84cee02-3eea-4eee-a827-87c1a02a0fcc");
     pub const Vtbl = extern struct {
         // IUnknown
-        iunknown: IUnknown.Vtbl,
+        parent: IUnknown.Vtbl,
 
         // IDWriteFontCollection
         GetFontFamilyCount: fn (self: *Self) callconv(.Stdcall) u32,
@@ -2434,7 +2434,7 @@ pub const IDWriteFontList = extern struct {
     pub const IID = GUID_STRING("1a0d8438-1d97-4ec1-aef9-a2fb86ed6acb");
     pub const Vtbl = extern struct {
         // IUnknown
-        iunknown: IUnknown.Vtbl,
+        parent: IUnknown.Vtbl,
 
         // IDWriteFontList
         GetFontCollection: fn (self: *Self, fontCollection: *?*IDWriteFontCollection) callconv(.Stdcall) i32,
@@ -2488,7 +2488,7 @@ pub const IDWriteFontFamily = extern struct {
     pub const IID = GUID_STRING("da20d8ef-812a-4c43-9802-62ec4abd7add");
     pub const Vtbl = extern struct {
         // IDWriteFontList
-        idwritefontlist: IDWriteFontList.Vtbl,
+        parent: IDWriteFontList.Vtbl,
 
         // IDWriteFontFamily
         GetFamilyNames: fn (self: *Self, names: *?*IDWriteLocalizedStrings) callconv(.Stdcall) i32,
@@ -2571,7 +2571,7 @@ pub const IDWriteFont = extern struct {
     pub const IID = GUID_STRING("acd16696-8c14-4f5d-877e-fe3fc1d32737");
     pub const Vtbl = extern struct {
         // IUnknown
-        iunknown: IUnknown.Vtbl,
+        parent: IUnknown.Vtbl,
 
         // IDWriteFont
         GetFontFamily: fn (self: *Self, fontFamily: *?*IDWriteFontFamily) callconv(.Stdcall) i32,
@@ -2670,7 +2670,7 @@ pub const IDWriteTextFormat = extern struct {
     pub const IID = GUID_STRING("9c906818-31d7-4fd3-a151-7c5e225db55a");
     pub const Vtbl = extern struct {
         // IUnknown
-        iunknown: IUnknown.Vtbl,
+        parent: IUnknown.Vtbl,
 
         // IDWriteTextFormat
         SetTextAlignment: fn (self: *Self, textAlignment: DWRITE_TEXT_ALIGNMENT) callconv(.Stdcall) i32,
@@ -2863,7 +2863,7 @@ pub const IDWriteTypography = extern struct {
     pub const IID = GUID_STRING("55f1112b-1dc2-4b3c-9541-f46894ed85b6");
     pub const Vtbl = extern struct {
         // IUnknown
-        iunknown: IUnknown.Vtbl,
+        parent: IUnknown.Vtbl,
 
         // IDWriteTypography
         AddFontFeature: fn (self: *Self, fontFeature: DWRITE_FONT_FEATURE) callconv(.Stdcall) i32,
@@ -2911,7 +2911,7 @@ pub const IDWriteNumberSubstitution = extern struct {
     pub const IID = GUID_STRING("14885CC9-BAB0-4f90-B6ED-5C366A2CD03D");
     pub const Vtbl = extern struct {
         // IUnknown
-        iunknown: IUnknown.Vtbl,
+        parent: IUnknown.Vtbl,
 
         // IDWriteNumberSubstitution
     };
@@ -2936,7 +2936,7 @@ pub const IDWriteTextAnalysisSource = extern struct {
     pub const IID = GUID_STRING("688e1a58-5094-47c8-adc8-fbcea60ae92b");
     pub const Vtbl = extern struct {
         // IUnknown
-        iunknown: IUnknown.Vtbl,
+        parent: IUnknown.Vtbl,
 
         // IDWriteTextAnalysisSource
         GetTextAtPosition: fn (self: *Self, textPosition: u32, textString: *?[*]const u16, textLength: *u32) callconv(.Stdcall) i32,
@@ -3026,7 +3026,7 @@ pub const IDWriteTextAnalysisSink = extern struct {
     pub const IID = GUID_STRING("5810cd44-0ca0-4701-b3fa-bec5182ae4f6");
     pub const Vtbl = extern struct {
         // IUnknown
-        iunknown: IUnknown.Vtbl,
+        parent: IUnknown.Vtbl,
 
         // IDWriteTextAnalysisSink
         SetScriptAnalysis: fn (self: *Self, textPosition: u32, textLength: u32, scriptAnalysis: *const DWRITE_SCRIPT_ANALYSIS) callconv(.Stdcall) i32,
@@ -3066,13 +3066,12 @@ pub const IDWriteTextAnalysisSink = extern struct {
     pub inline fn SetLineBreakpoints(
         self: *Self,
         textPosition: u32,
-        textLength: u32,
         lineBreakpoints: []const DWRITE_LINE_BREAKPOINT,
     ) i32 {
         return self.lpVtbl.*.SetLineBreakpoints(
             self,
             textPosition,
-            textLength,
+            @truncate(u32, lineBreakpoints.len),
             lineBreakpoints.ptr,
         );
     }
@@ -3113,7 +3112,7 @@ pub const IDWriteTextAnalyzer = extern struct {
     pub const IID = GUID_STRING("b7e6163e-7f46-43b4-84b3-e4e6249c365d");
     pub const Vtbl = extern struct {
         // IUnknown
-        iunknown: IUnknown.Vtbl,
+        parent: IUnknown.Vtbl,
 
         // IDWriteTextAnalyzer
         AnalyzeScript: fn (self: *Self, analysisSource: *IDWriteTextAnalysisSource, textPosition: u32, textLength: u32, analysisSink: *IDWriteTextAnalysisSink) callconv(.Stdcall) i32,
@@ -3253,10 +3252,8 @@ pub const IDWriteTextAnalyzer = extern struct {
         textString: []const u16,
         clusterMap: []const u16,
         textProps: []DWRITE_SHAPING_TEXT_PROPERTIES,
-        textLength: u32,
         glyphIndices: []const u16,
         glyphProps: []const DWRITE_SHAPING_GLYPH_PROPERTIES,
-        glyphCount: u32,
         fontFace: *IDWriteFontFace,
         fontEmSize: f32,
         isSideways: bool,
@@ -3265,7 +3262,6 @@ pub const IDWriteTextAnalyzer = extern struct {
         localeName: ?[:0]const u16,
         features: ?[]*const DWRITE_TYPOGRAPHIC_FEATURES,
         featureRangeLengths: ?[]const u32,
-        featureRanges: u32,
         glyphAdvances: []f32,
         glyphOffsets: []DWRITE_GLYPH_OFFSET,
     ) i32 {
@@ -3359,7 +3355,7 @@ pub const IDWriteInlineObject = extern struct {
     pub const IID = GUID_STRING("8339FDE3-106F-47ab-8373-1C6295EB10B3");
     pub const Vtbl = extern struct {
         // IUnknown
-        iunknown: IUnknown.Vtbl,
+        parent: IUnknown.Vtbl,
 
         // IDWriteInlineObject
         Draw: fn (self: *Self, clientDrawingContext: ?*c_void, renderer: *IDWriteTextRenderer, originX: f32, originY: f32, isSideways: i32, isRightToLeft: i32, clientDrawingEffect: ?*IUnknown) callconv(.Stdcall) i32,
@@ -3430,7 +3426,7 @@ pub const IDWritePixelSnapping = extern struct {
     pub const IID = GUID_STRING("eaf3a2da-ecf4-4d24-b644-b34f6842024b");
     pub const Vtbl = extern struct {
         // IUnknown
-        iunknown: IUnknown.Vtbl,
+        parent: IUnknown.Vtbl,
 
         // IDWritePixelSnapping
         IsPixelSnappingDisabled: fn (self: *Self, clientDrawingContext: ?*c_void, isDisabled: *i32) callconv(.Stdcall) i32,
@@ -3489,7 +3485,7 @@ pub const IDWriteTextRenderer = extern struct {
     pub const IID = GUID_STRING("ef8a8135-5cc6-45fe-8825-c5a0724eb819");
     pub const Vtbl = extern struct {
         // IDWritePixelSnapping
-        idwritepixelsnapping: IDWritePixelSnapping.Vtbl,
+        parent: IDWritePixelSnapping.Vtbl,
 
         // IDWriteTextRenderer
         DrawGlyphRun: fn (self: *Self, clientDrawingContext: ?*c_void, baselineOriginX: f32, baselineOriginY: f32, measuringMode: DWRITE_MEASURING_MODE, glyphRun: *const DWRITE_GLYPH_RUN, glyphRunDescription: *const DWRITE_GLYPH_RUN_DESCRIPTION, clientDrawingEffect: ?*IUnknown) callconv(.Stdcall) i32,
@@ -3631,7 +3627,7 @@ pub const IDWriteTextLayout = extern struct {
     pub const IID = GUID_STRING("53737037-6d14-410b-9bfe-0b182bb70961");
     pub const Vtbl = extern struct {
         // IDWriteTextFormat
-        idwritetextformat: IDWriteTextFormat.Vtbl,
+        parent: IDWriteTextFormat.Vtbl,
 
         // IDWriteTextLayout
         SetMaxWidth: fn (self: *Self, maxWidth: f32) callconv(.Stdcall) i32,
@@ -4328,7 +4324,7 @@ pub const IDWriteBitmapRenderTarget = extern struct {
     pub const IID = GUID_STRING("5e5a32a3-8dff-4773-9ff6-0696eab77267");
     pub const Vtbl = extern struct {
         // IUnknown
-        iunknown: IUnknown.Vtbl,
+        parent: IUnknown.Vtbl,
 
         // IDWriteBitmapRenderTarget
         DrawGlyphRun: fn (self: *Self, baselineOriginX: f32, baselineOriginY: f32, measuringMode: DWRITE_MEASURING_MODE, glyphRun: *const DWRITE_GLYPH_RUN, renderingParams: *IDWriteRenderingParams, textColor: c_ulong, blackBoxRect: ?*RECT) callconv(.Stdcall) i32,
@@ -4411,7 +4407,7 @@ pub const IDWriteGdiInterop = extern struct {
     pub const IID = GUID_STRING("1edd9491-9853-4299-898f-6432983b6f3a");
     pub const Vtbl = extern struct {
         // IUnknown
-        iunknown: IUnknown.Vtbl,
+        parent: IUnknown.Vtbl,
 
         // IDWriteGdiInterop
         CreateFontFromLOGFONT: fn (self: *Self, logFont: *const LOGFONTW, font: *?*IDWriteFont) callconv(.Stdcall) i32,
@@ -4510,7 +4506,7 @@ pub const IDWriteGlyphRunAnalysis = extern struct {
     pub const IID = GUID_STRING("7d97dbf7-e085-42d4-81e3-6a883bded118");
     pub const Vtbl = extern struct {
         // IUnknown
-        iunknown: IUnknown.Vtbl,
+        parent: IUnknown.Vtbl,
 
         // IDWriteGlyphRunAnalysis
         GetAlphaTextureBounds: fn (self: *Self, textureType: DWRITE_TEXTURE_TYPE, textureBounds: *RECT) callconv(.Stdcall) i32,

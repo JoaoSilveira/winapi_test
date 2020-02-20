@@ -1,13 +1,40 @@
 ^\s*#define\s+([_\w+][_\w\d]+)\s+((0x)?[\da-f]+|[_\w+][_\w\d]+\([^\)]+\))
+
 ^\s*//\s*((MessageId|MessageText):.*|)\s*\n
+
 ^///+\n(^\s*//\s+.*/\s*\n)+^\s*///+
+
 ^//\s+\{[^\}]+.*\n
+
 ^//\s+\*+[^\*]+\*+\n
+
 ^//\s+=+\s*\n.*\n//\s+=+\s*
 
-(?<=@ptrCast\(\*[^\(]+\()[\n\s]*self,?
+# removes self parameter for child classes
+(?<=@ptrCast\(\*[^\(]+\()[\n\s]*self(,\s*)?
 
+# vtable to utility function
 ^\s*([^:]+)[^\(]+\(([^\)]+)\)[^\)]+\)\s*([^,]+),
     pub inline fn $1($2,) $3 {
         return self.lpVtbl.*.$1(self,);
     }
+
+# convert stdmethod_
+STDMETHOD_\(([^,]+),\s*([^\)]+)\)\(([^\)]*)\)\s*PURE;
+$2: fn(self: *Self, $3) callconv(.Stdcall) $1,
+
+# convert stdmethod
+STDMETHOD\(([^\)]+)\)\(((!?.|\n)+?)\) PURE;
+$1: fn (self: *Self, $2) callconv(.Stdcall) i32,
+
+# simple parameters
+(?<=^\s+)(!?_In_ |_Out_ )?(\w+) ?(const)?(\*)? (\w+)(?=,?\s*$)
+$5: $4$3 $2
+
+# optional parameters
+(?<=^\s+)(!?_In_opt_|_Out_opt_) (\w+)( const)?\* (\w+)(!?\s*=.+)?(?=,?\s*$)
+$4: ?*$3 $2
+
+# arrays
+(?<=^\s+)(!?_In_reads_|_Out_writes_)(!?\(\w+\)) (\w+) ?(const)?\* (\w+)(?=,?\s*$)
+$5: [*]$4 $3
